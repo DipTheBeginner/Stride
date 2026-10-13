@@ -1,0 +1,24 @@
+{
+  "name": "stride",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "bun@1.3.14",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck"
+  },
+  "devDependencies": {
+    "prisma": "7.10.0",
+    "turbo": "^2.5.0",
+    "typescript": "^5.9.0"
+  },
+  "dependencies": {
+    "@prisma/client": "7.10.0"
+  }
+}

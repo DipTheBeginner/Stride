@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum AuthProvider {
+  GOOGLE
+  GITHUB
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String?   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships WorkspaceMember[]
+  oauthAccounts OAuthAccount[]
+}
+
+model OAuthAccount {
+  id String @id @default(cuid())
+  provider AuthProvider
+  providerAccountId String
+  userId String
+  user User @relation(fields: [userId], references: [id] , onDelete: Cascade)
+
+  @@unique([provider , providerAccountId])
+  @@index([userId])
+}
+
+model Workspace {
+  id        String            @id @default(cuid())
+  name      String
+  slug      String            @unique
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  members   WorkspaceMember[]
+}
+
+model WorkspaceMember {
+  id       String        @id @default(cuid())
+  role     WorkspaceRole @default(MEMBER)
+  joinedAt DateTime      @default(now())
+
+  userId      String
+  workspaceId String
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId])
+}
