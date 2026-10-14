@@ -2,6 +2,7 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { findOrCreateOAuthUser } from "../services/auth.service";
 import { Strategy as GitHubStrategy } from "passport-github2";
+import { prisma } from "@stride/database";
 
 
 
@@ -20,18 +21,14 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id: string, done) => {
   try {
-
-    const user = await (await import("@stride/database")).prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id },
-    })
+    });
     done(null, user ?? false);
-
-
   } catch (error) {
-    done(error)
-
+    done(error);
   }
-})
+});
 
 
 passport.use(

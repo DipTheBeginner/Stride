@@ -1,14 +1,14 @@
 import { Router } from "express";
-import passport, { authenticate } from "passport";
+import passport from "passport";
 
 
 const router = Router();
 
-const frontendUrl = process.env.FRONTEND_URL || "https://localhost:3000";
+const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
 
 
 
-router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+router.get("/google",passport.authenticate("google",{scope:["profile","email"]}))
 
 router.get("/google/callback", passport.authenticate("google", {
   failureRedirect: `${frontendUrl}/login?error=oauth_failed`,
@@ -26,7 +26,7 @@ router.get(
 );
 
 
-router.get("github/callback", passport.authenticate("github", {
+router.get("/github/callback", passport.authenticate("github", {
   failureRedirect:`${frontendUrl}/login?error=oauth_failed`,
 }),
 
