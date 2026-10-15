@@ -6,6 +6,7 @@ import { prisma } from "@stride/database";
 import session from "express-session";
 import passport from "./config/auth.config";
 import authRouter from "./routes/auth.routes";
+import workspacerouter from "./routes/workspace.routes";
 
 const app = express();
 
@@ -53,6 +54,8 @@ app.get("/health", (_req, res) => {
     service: "stride-api",
   });
 });
+
+app.use("/workspaces",workspacerouter)
 
 app.get("/health/db", async (_req, res) => {
   try {

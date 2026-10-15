@@ -40,7 +40,7 @@ export async function findOrCreateOAuthUser(input: OAuthUserInput) {
     }
   }
 
-  return prisma.user.create({
+  return await prisma.user.create({
     data: {
       name: input.name.trim() || "Stride User",
       email,
