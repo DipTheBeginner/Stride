@@ -85,7 +85,7 @@ export async function getWorkspaceBySlug(slug: string,userId:string) {
 
   const normalizedSlug = slug.trim().toLowerCase();
 
-  const slugWorkspace = await prisma.workspace.findUnique({
+  const slugWorkspace = await prisma.workspace.findFirst({
     where: {
       slug: normalizedSlug,
       members: {

@@ -21,7 +21,7 @@ export async function createProject(name: string, workspaceId: string, userId: s
   }
 
   const project = await prisma.project.create({
-    
+
       data: {
         name,
         workspaceId
@@ -30,5 +30,36 @@ export async function createProject(name: string, workspaceId: string, userId: s
   )
 
   return project;
-  
+
+}
+
+
+
+export async function getWorkspaceProjectsBySlug(
+  slug: string,
+  userId: string,
+) {
+  const normalizedSlug = slug.trim().toLowerCase();
+
+  const workspace = await prisma.workspace.findFirst({
+    where: {
+      slug: normalizedSlug,
+      members: {
+        some: { userId },
+      },
+    },
+    include: {
+      projects: {
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+    },
+  });
+
+  if (!workspace) {
+    throw new Error("Workspace not found or unauthorized");
+  }
+
+  return workspace.projects;
 }
