@@ -1,4 +1,3 @@
-
 import express from "express";
 import helmet from "helmet";
 import cors from "cors";
@@ -7,9 +6,9 @@ import session from "express-session";
 import passport from "./config/auth.config";
 import authRouter from "./routes/auth.routes";
 import workspacerouter from "./routes/workspace.routes";
+import projectRouter from "./routes/project.routes";
 
 const app = express();
-
 
 const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
 const isProduction = process.env.NODE_ENV === "production";
@@ -20,11 +19,10 @@ app.use(helmet());
 app.use(
   cors({
     origin: frontendUrl,
-    credentials: true, // REQUIRED so browser sends/receives stride.sid cookie
+    credentials: true,
   }),
 );
 app.use(express.json());
-
 
 app.use(
   session({
@@ -46,8 +44,6 @@ app.use(passport.session());
 
 app.use("/auth", authRouter);
 
-
-
 app.get("/health", (_req, res) => {
   res.status(200).json({
     message: "Ok",
@@ -55,7 +51,8 @@ app.get("/health", (_req, res) => {
   });
 });
 
-app.use("/workspaces",workspacerouter)
+app.use("/workspaces", workspacerouter);
+app.use("/projects", projectRouter);
 
 app.get("/health/db", async (_req, res) => {
   try {

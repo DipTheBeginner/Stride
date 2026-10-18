@@ -1,44 +1,34 @@
 import { prisma } from "@stride/database";
 
-
-
-
-
-
-export async function createProject(name: string, workspaceId: string, userId: string) {
-
+export async function createProject(
+  name: string,
+  workspaceId: string,
+  userId: string,
+) {
   const membership = await prisma.workspaceMember.findUnique({
     where: {
       userId_workspaceId: {
         userId,
-        workspaceId
-      }
-    }
-  })
+        workspaceId,
+      },
+    },
+  });
 
   if (!membership) {
-    throw new Error("Unauthorized access to workspace")
+    throw new Error("Unauthorized access to workspace");
   }
 
   const project = await prisma.project.create({
-
-      data: {
-        name,
-        workspaceId
-      }
-    }
-  )
+    data: {
+      name,
+      workspaceId,
+    },
+  });
 
   return project;
-
 }
 
-
-
-export async function getWorkspaceProjectsBySlug(
-  slug: string,
-  userId: string,
-) {
+export async function getWorkspaceProjectsBySlug(slug: string, userId: string) {
   const normalizedSlug = slug.trim().toLowerCase();
 
   const workspace = await prisma.workspace.findFirst({

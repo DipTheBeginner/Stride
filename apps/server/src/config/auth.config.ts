@@ -3,11 +3,7 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { findOrCreateOAuthUser } from "../services/auth.service";
 import { Strategy as GitHubStrategy } from "passport-github2";
 import { prisma } from "@stride/database";
-
-
-
-
-
+import "dotenv/config";
 
 function requiredEnv(name: string): string {
   const value = process.env[name];
@@ -30,7 +26,6 @@ passport.deserializeUser(async (id: string, done) => {
   }
 });
 
-
 passport.use(
   new GoogleStrategy(
     {
@@ -45,9 +40,7 @@ passport.use(
           providerAccountId: profile.id,
           email: profile.emails?.[0]?.value ?? null,
           name:
-            profile.displayName ||
-            profile.emails?.[0]?.value ||
-            "Google User",
+            profile.displayName || profile.emails?.[0]?.value || "Google User",
         });
 
         done(null, user);
