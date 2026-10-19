@@ -1,7 +1,10 @@
-
 import { Router, type Request, type Response } from "express";
 import authMiddleware from "../middleware/aut.middleware";
-import {createWorkspace, getUserWorkspace, getWorkspaceBySlug} from "../services/workspace.service";
+import {
+  createWorkspace,
+  getUserWorkspace,
+  getWorkspaceBySlug,
+} from "../services/workspace.service";
 
 const router = Router();
 
@@ -76,58 +79,46 @@ router.post(
         message: "Failed to create workspace",
       });
     }
-  }
+  },
 );
 
+router.get(
+  "/getworkspaces",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          error: "UserId not avilable",
+        });
+      }
 
-router.get("/getworkspaces", authMiddleware, async (req: Request, res: Response) => {
+      const userId = req.user.id;
 
-  try {
-    if (!req.user) {
-      return res.status(401).json({
-        error:"UserId not avilable"
-      })
+      const userworksSpace = await getUserWorkspace(userId);
 
-    }
-
-    const userId = req.user.id;
-
-    const userworksSpace=await getUserWorkspace(userId);
-
-    return res.status(200).json({
-      success: true,
-      message: "User workspaces fetched",
-      userworksSpace
-    })
-
-
-
-  } catch (error) {
-
-    console.log("Workspaces fetch failed:", error);
-    return res.status(500).json({
+      return res.status(200).json({
+        success: true,
+        message: "User workspaces fetched",
+        userworksSpace,
+      });
+    } catch (error) {
+      console.log("Workspaces fetch failed:", error);
+      return res.status(500).json({
         success: false,
         message: "Failed to fetch workspaces",
       });
+    }
+  },
+);
 
-
-  }
-
-
-})
-
-
-
-
-router.get("/:slug", authMiddleware, async(req: Request, res: Response) => {
-
+router.get("/:slug", authMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        message:"Unauthorized"
-      })
-
+        message: "Unauthorized",
+      });
     }
 
     const userId = req.user.id;
@@ -140,29 +131,25 @@ router.get("/:slug", authMiddleware, async(req: Request, res: Response) => {
       });
     }
 
-
     const workspace = await getWorkspaceBySlug(slug, userId);
 
     if (!workspace) {
       return res.status(404).json({
-        message:"No wrokspaces found with such slug"
-      })
+        message: "No wrokspaces found with such slug",
+      });
     }
 
     return res.status(200).json({
       success: true,
-      workspace
-    })
-    
-    
+      workspace,
+    });
   } catch (error) {
     console.error("Failed to fetch workspace by slug", error);
     return res.status(500).json({
       success: false,
-      message:"Failed to fetch workspace"
-    })
-
+      message: "Failed to fetch workspace",
+    });
   }
-})
+});
 
 export default router;

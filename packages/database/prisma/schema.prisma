@@ -1,3 +1,5 @@
+
+
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -19,37 +21,36 @@ enum AuthProvider {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  name         String
-  email        String?   @unique
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  email     String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  memberships WorkspaceMember[]
+  memberships   WorkspaceMember[]
   oauthAccounts OAuthAccount[]
 }
 
 model OAuthAccount {
-  id String @id @default(cuid())
-  provider AuthProvider
+  id                String       @id @default(cuid())
+  provider          AuthProvider
   providerAccountId String
-  userId String
-  user User @relation(fields: [userId], references: [id] , onDelete: Cascade)
+  userId            String
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([provider , providerAccountId])
+  @@unique([provider, providerAccountId])
   @@index([userId])
 }
 
-model Project{
-  id String @id @default(cuid())
+model Project {
+  id   String @id @default(cuid())
   name String
-  
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   workspaceId String
-  
+
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@index([workspaceId])
@@ -59,10 +60,11 @@ model Workspace {
   id        String            @id @default(cuid())
   name      String
   slug      String            @unique
+  logoUrl   String?
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
   members   WorkspaceMember[]
-  projects Project[]
+  projects  Project[]
 }
 
 model WorkspaceMember {
