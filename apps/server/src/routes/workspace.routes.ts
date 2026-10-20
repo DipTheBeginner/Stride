@@ -4,7 +4,16 @@ import {
   createWorkspace,
   getUserWorkspace,
   getWorkspaceBySlug,
+  updateWorkspaceLogo,
 } from "../services/workspace.service";
+import { uploadWorkspacelogo } from "../middleware/upload.middleware";
+import { validateWorkspaceLogo } from "../utils/validate-image";
+import requireWorkspaceManager from "../middleware/workspacepermission.middleware";
+import {
+  deleteLogofromR2,
+  getLogoSignedUrl,
+  uploadLogoToR2,
+} from "../services/r2.service";
 
 const router = Router();
 
@@ -139,9 +148,16 @@ router.get("/:slug", authMiddleware, async (req: Request, res: Response) => {
       });
     }
 
+    const logoUrl = workspace.logoUrl
+      ? await getLogoSignedUrl(workspace.logoUrl)
+      : null;
+
     return res.status(200).json({
       success: true,
-      workspace,
+      workspace: {
+        ...workspace,
+        logoUrl,
+      },
     });
   } catch (error) {
     console.error("Failed to fetch workspace by slug", error);
@@ -151,5 +167,92 @@ router.get("/:slug", authMiddleware, async (req: Request, res: Response) => {
     });
   }
 });
+
+router.patch(
+  "/:slug/logo",
+  authMiddleware,
+  requireWorkspaceManager,
+  uploadWorkspacelogo,
+  async (req: Request, res: Response) => {
+    // OUTER TRY START
+    try {
+      const { slug } = req.params;
+      const file = req.file;
+
+      if (typeof slug !== "string" || !slug.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid workspace slug",
+        });
+      }
+
+      if (!file) {
+        return res.status(400).json({
+          success: false,
+          message: "Workspace logo is required",
+        });
+      }
+
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const userId = req.user.id;
+
+      let validatedMimeType: string;
+
+      try {
+        validatedMimeType = await validateWorkspaceLogo(file);
+      } catch {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid workspace logo",
+        });
+      }
+
+      const workspace = await getWorkspaceBySlug(slug, userId);
+
+      if (!workspace) {
+        return res.status(404).json({
+          success: false,
+          message: "Workspace not found",
+        });
+      }
+
+      const key = await uploadLogoToR2(workspace.id, file, validatedMimeType);
+
+      // INNER TRY START
+      try {
+        const updatedWorkspace = await updateWorkspaceLogo(slug, key);
+
+        return res.status(200).json({
+          success: true,
+          message: "Workspace logo updated",
+          workspace: updatedWorkspace,
+        });
+      } catch (error) {
+        try {
+          await deleteLogofromR2(key);
+        } catch (cleanupError) {
+          console.error("R2 cleanup failed:", cleanupError);
+        }
+
+        throw error;
+      }
+      // INNER TRY END
+    } catch (error) {
+      // OUTER CATCH
+      console.error("Workspace logo upload failed:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Failed to upload workspace logo",
+      });
+    }
+  },
+);
 
 export default router;

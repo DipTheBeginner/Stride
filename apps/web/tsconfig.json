@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-  ],
+, "../server/src/config/r2.ts", "../server/src/middleware/upload.middleware.ts"  ],
   "exclude": ["node_modules"]
 }

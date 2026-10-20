@@ -75,7 +75,15 @@ export default function WorkspaceShell({
         <Sidebar workspace={workspace} />
       </aside>
 
-      <div className="w-[80%]">{children}</div>
+      <div className="flex flex-1 flex-col min-w-0">
+        <header className=" flex h-16 items-center shrink-0 justify-center border-b border-[#363943]">
+          Search bar
+        </header>
+
+        <div className="flex-1 min-w-0">
+          {children}
+        </div>
+      </div>
     </div>
   );
 }

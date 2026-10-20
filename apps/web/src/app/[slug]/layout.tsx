@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import WorkspaceShell from "../../../components/layout/workspace-shell";
 
+export const instant = false;
+
 export default async function WorkspaceLayout({
   children,
   params,
