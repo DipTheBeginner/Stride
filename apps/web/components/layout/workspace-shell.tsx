@@ -4,12 +4,17 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import Sidebar from "./sidebar";
 
-type Workspace = {
+import { WorkspaceProvider } from "../workspace/workspace-context";
+
+type Workspace =
+ {
   id: string;
   name: string;
   slug: string;
   logoUrl: string | null;
 };
+
+
 
 export default function WorkspaceShell({
   children,
@@ -70,9 +75,10 @@ export default function WorkspaceShell({
   }
 
   return (
+      <WorkspaceProvider workspace={workspace}>
     <div className="flex min-h-screen w-full">
       <aside className="w-[20%] shrink-0 border-r border-[#363943]">
-        <Sidebar workspace={workspace} />
+        <Sidebar />
       </aside>
 
       <div className="flex flex-1 flex-col min-w-0">
@@ -84,6 +90,7 @@ export default function WorkspaceShell({
           {children}
         </div>
       </div>
-    </div>
+      </div>
+      </WorkspaceProvider>
   );
 }

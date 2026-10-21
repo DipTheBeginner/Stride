@@ -18,15 +18,12 @@ import {
 } from "lucide-react";
 import SidebarNavItems from "./Sidebar-NavItems";
 import { useState } from "react";
+import { useWorkspace } from "../workspace/workspace-context";
 
-type SidebarProps = {
-  workspace: {
-    name: string;
-    logoUrl: string | null;
-  };
-};
 
-export default function Sidebar({ workspace }: SidebarProps) {
+
+export default function Sidebar() {
+  const workspace = useWorkspace()
   const initials = workspace.name
     .trim()
     .split(/\s+/)
