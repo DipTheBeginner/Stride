@@ -2,6 +2,8 @@
 
 import { Plus } from "lucide-react";
 import { useState } from "react";
+import CreateProjectModal from "../../../../components/projects/create-project-modal";
+import ProjectCard from "../../../../components/projects/project-card";
 
 
 
@@ -23,7 +25,7 @@ export default function Projects() {
           boxes
         </div>
         </div>
-        <button onClick={()=>setIsOpen(true)}
+        <button onClick={() => setIsOpen((prev) => !prev)}
           className="bg-[#4F54E7] flex">
           <Plus/>
           <span>New project</span>
@@ -39,13 +41,16 @@ export default function Projects() {
             <div>view type</div>
           </div>
           <div>
-            projects list
+            <ProjectCard/>
           </div>
         </div>
         <div>
           project overview
         </div>
       </div>
+      {
+        isOpen && <CreateProjectModal/>
+      }
     </div>
     
   )
