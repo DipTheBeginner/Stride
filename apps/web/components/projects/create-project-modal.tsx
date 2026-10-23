@@ -3,11 +3,13 @@
 import { Cross, X } from "lucide-react";
 import { useState } from "react";
 import { useWorkspace } from "../workspace/workspace-context";
+import { useProjects } from "./projects-context";
 
 
 export default function CreateProjectModal() {
 
   const { id: workspaceId } = useWorkspace();
+  const { refreshProjects } = useProjects();
 
 
   async function handlecreateProject(){
@@ -36,10 +38,10 @@ export default function CreateProjectModal() {
       if (!response.ok) {
         throw new Error(`Project creation failed: ${response.status}`);
       }
-      
-      const data = await response.json();
-      console.log("Project created:", data);
 
+      await refreshProjects();
+
+      onClose();
       
       
     } catch (error) {
