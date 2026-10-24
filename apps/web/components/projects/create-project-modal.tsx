@@ -1,15 +1,23 @@
 "use client"
 
-import { Cross, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useState } from "react";
 import { useWorkspace } from "../workspace/workspace-context";
 import { useProjects } from "./projects-context";
 
 
-export default function CreateProjectModal() {
+type CreateProjectModalProps = {
+  onClose: () => void;
+};
+
+export default function CreateProjectModal({
+  onClose
+}: CreateProjectModalProps) {
 
   const { id: workspaceId } = useWorkspace();
   const { refreshProjects } = useProjects();
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("");
 
 
   async function handlecreateProject(){
@@ -30,27 +38,32 @@ export default function CreateProjectModal() {
           },
 
           body: JSON.stringify({
-            name:name.trim()
+            name: name.trim(),
+            description
           })
         }
       )
 
       if (!response.ok) {
-        throw new Error(`Project creation failed: ${response.status}`);
+        const errorBody = await response.text();
+        
+          throw new Error(
+            `Failed to fetch projects: ${response.status} ${errorBody}`,
+          );
       }
 
       await refreshProjects();
 
       onClose();
-      
-      
+
+    
     } catch (error) {
       console.error("Failed to create project:", error);
     }
   }
 
 
-  const[name , setName] = useState("")
+  
   return (
     <div className="bg-[#0C0E0F] flex flex-col w-1/2 p-6 rounded-lg">
       <div className="flex justify-between">
@@ -58,9 +71,9 @@ export default function CreateProjectModal() {
           <span className="text-xl font-semibold">Create project</span>
           <span className="text-sm text-[#8A8F98]">Start something new in your workspace</span>
         </div>
-        <div>
-          <X/>
-        </div>
+        <button type="button" onClick={onClose}>
+          <X size={20} />
+        </button>
         
       
       </div>
@@ -75,12 +88,14 @@ export default function CreateProjectModal() {
 
           type="text" className="mt-2 bg-[#202024]" />
         <span>Descreption</span>
-        <textarea name="" id=""></textarea>
+        <textarea name="" id="" value={description} onChange={(event)=>setDescription(event.target.value)}></textarea>
 
         <div>
           <div>
             <span>Statuses</span>
             <input type="text" />
+            
+            
           </div>
           <div>
             <span>Priority</span>

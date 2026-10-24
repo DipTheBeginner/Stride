@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 import CreateProjectModal from "../../../../components/projects/create-project-modal";
 import ProjectCard from "../../../../components/projects/project-card";
+import { useProjects } from "../../../../components/projects/projects-context";
 
 
 
@@ -12,6 +13,7 @@ export default function Projects() {
 
   const [isOpen, setIsOpen] = useState(false);
 
+  const {projects} = useProjects();
 
   return (
 
@@ -40,8 +42,10 @@ export default function Projects() {
             <div>sort by</div>
             <div>view type</div>
           </div>
-          <div>
-            <ProjectCard/>
+          <div className="">
+            {projects.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
           </div>
         </div>
         <div>
@@ -49,7 +53,7 @@ export default function Projects() {
         </div>
       </div>
       {
-        isOpen && <CreateProjectModal/>
+        isOpen && <CreateProjectModal onClose={() => setIsOpen(false)}/>
       }
     </div>
     

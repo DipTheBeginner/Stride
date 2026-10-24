@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import Sidebar from "./sidebar";
 
 import { WorkspaceProvider } from "../workspace/workspace-context";
+import { ProjectsProvider } from "../projects/projects-context";
 
 type Workspace =
  {
@@ -61,7 +62,7 @@ export default function WorkspaceShell({
       }
     }
 
-    fetchWorkspace();
+   void fetchWorkspace();
 
     return () => controller.abort();
   }, [slug]);
@@ -75,7 +76,8 @@ export default function WorkspaceShell({
   }
 
   return (
-      <WorkspaceProvider workspace={workspace}>
+    <WorkspaceProvider workspace={workspace}>
+       <ProjectsProvider>
     <div className="flex min-h-screen w-full">
       <aside className="w-[20%] shrink-0 border-r border-[#363943]">
         <Sidebar />
@@ -90,7 +92,8 @@ export default function WorkspaceShell({
           {children}
         </div>
       </div>
-      </div>
+        </div>
+       </ProjectsProvider>
       </WorkspaceProvider>
   );
 }

@@ -116,3 +116,61 @@ export async function updateWorkspaceLogo(slug: string, logoKey: string) {
     },
   });
 }
+
+
+export async function addMembersToWorkspace(
+  workspaceId: string,
+  email: string,
+  requestedByUserId:string
+) {
+
+  const requesterMembership = await prisma.workspaceMember.findUnique({
+    where: {
+      userId_workspaceId: {
+        workspaceId,
+        userId:requestedByUserId
+      }
+    }
+    
+  })
+
+  if (
+     !requesterMembership ||
+     !["OWNER", "ADMIN"].includes(requesterMembership.role)
+   ) {
+     throw new Error("Unauthorized to add workspace members");
+  }
+
+  const existingUser = await prisma.user.findUnique({
+    where: {
+      email:email.trim().toLowerCase()
+    }
+  })
+
+  if (!existingUser) {
+    throw new Error("User not exist")
+  }
+
+  const existingMembership = await prisma.workspaceMember.findUnique({
+    where: {
+      userId_workspaceId: {
+        userId: existingUser.id,
+        workspaceId
+      }
+    }
+  })
+
+  if (existingMembership) {
+    throw new Error("User is already a member of this workspace");
+  }
+
+ 
+  
+  return prisma.workspaceMember.create({
+    data: {
+      workspaceId,
+      userId:existingUser.id,
+      role: "MEMBER",
+    },
+  });
+}

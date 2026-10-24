@@ -4,6 +4,7 @@ export async function createProject(
   name: string,
   workspaceId: string,
   userId: string,
+  description: string | null,
 ) {
   const membership = await prisma.workspaceMember.findUnique({
     where: {
@@ -22,7 +23,15 @@ export async function createProject(
     data: {
       name,
       workspaceId,
+      description,
+      members: {
+        create: {
+          userId,
+          role:"LEAD"
+        }
+      }
     },
+    
   });
 
   return project;

@@ -3,9 +3,14 @@
 import Image from "next/image";
 import { useWorkspace } from "../workspace-context";
 import { Ellipsis, UserRoundPlus } from "lucide-react";
+import { useState } from "react";
+import WorkspaceInvite from "./workspace-invite";
 
 export default function WorkspaceHeader() {
   const { name, logoUrl } = useWorkspace();
+
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  
 
   const initials = name.trim().charAt(0).toUpperCase();
 
@@ -13,6 +18,32 @@ export default function WorkspaceHeader() {
     logoUrl?.startsWith("https://") || logoUrl?.startsWith("/")
       ? logoUrl
       : null;
+
+
+  async function InviteMembers() {
+
+    const member = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workspaces/${encodeURIComponent(slug)}/addmember`, {
+
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify(
+        {
+          email,
+          
+          
+        }
+      )
+
+      
+    })
+
+    
+
+    
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -44,8 +75,15 @@ export default function WorkspaceHeader() {
             <div className="">members profile</div>
             <div className="flex flex-row gap-5">
               <div className="py-3 px-4 bg-[#0F1217] rounded-lg flex gap-6 items-center ">
-                <UserRoundPlus />
-                <div>Invite members</div>
+                
+                <button
+                  type="button"
+                  onClick={() => setIsInviteOpen(true)}
+                  className="flex items-center gap-3 rounded-lg bg-[#0F1217] px-4 py-3 cursor-pointer"
+                >
+                  <UserRoundPlus />
+                  Invite members
+                </button>
               </div>
               <div className="py-3 px-4 bg-[#0F1217] rounded-lg flex gap-6 items-center">
                 <Ellipsis />
@@ -102,6 +140,9 @@ export default function WorkspaceHeader() {
       </div>
       <div>Recent</div>
       <div>bottom</div>
+      {isInviteOpen && (
+        <WorkspaceInvite onClose={() => setIsInviteOpen(false)} />
+      )}
     </div>
   );
 }

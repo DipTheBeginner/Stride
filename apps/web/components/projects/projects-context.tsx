@@ -9,7 +9,9 @@ import { useWorkspace } from "../workspace/workspace-context";
 export type Project = {
   id: string,
   name: string,
-  workspaceId:string
+  workspaceId: string
+  description: string | null
+  status: "PLANNED" | "ACTIVE" | "ON_HOLD" | "COMPLETED" | "CANCELLED";
 }
 
 type ProjectsContextValue = {
@@ -39,7 +41,7 @@ export function ProjectsProvider({ children }: projectsProviderProps) {
   const refreshProjects = useCallback(async () => {
      try {
        const response = await fetch(
-         `${process.env.NEXT_PUBLIC_API_URL}/project/workspace/${encodeURIComponent(slug)}/projects`,
+         `${process.env.NEXT_PUBLIC_API_URL}/projects/workspace/${encodeURIComponent(slug)}/projects`,
          {
            method: "GET",
            credentials: "include",

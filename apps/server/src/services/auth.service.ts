@@ -12,6 +12,9 @@ interface OAuthUserInput {
 export async function findOrCreateOAuthUser(input: OAuthUserInput) {
   const { provider, providerAccountId } = input;
 
+  
+    
+
   const existingAccount = await prisma.oAuthAccount.findUnique({
     where: {
       provider_providerAccountId: {
@@ -25,6 +28,7 @@ export async function findOrCreateOAuthUser(input: OAuthUserInput) {
   if (existingAccount) {
     return existingAccount.user;
   }
+  
 
   const email = input.email?.trim().toLowerCase() || null;
 

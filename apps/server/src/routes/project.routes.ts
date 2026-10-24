@@ -20,8 +20,9 @@ router.post(
       }
 
       const userId = req.user.id;
-      const { name } = req.body;
+      const { name , description } = req.body;
       const { workspaceId } = req.params;
+      
 
       if (typeof workspaceId !== "string" || workspaceId.trim() === "") {
         return res.status(400).json({
@@ -36,11 +37,28 @@ router.post(
           message: "Project name is required",
         });
       }
+      
+      if (
+        description !== undefined &&
+        description !== null &&
+        typeof description !== "string"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Description must be a string",
+        });
+      }
+
+      const cleanDescription =
+        typeof description === "string" && description.trim()
+          ? description.trim()
+          : null;
 
       const project = await createProject(
         name.trim(),
         workspaceId.trim(),
         userId,
+        cleanDescription
       );
 
       return res.status(201).json({
