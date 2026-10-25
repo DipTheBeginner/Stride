@@ -32,6 +32,11 @@ enum ProjectRole {
   VIEWER
 }
 
+enum InvitationStatus {
+  ACCEPTED
+  REJECTED
+  PENDING
+}
 
 model User {
   id        String   @id @default(cuid())
@@ -40,9 +45,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  memberships   WorkspaceMember[]
-  oauthAccounts OAuthAccount[]
+  memberships        WorkspaceMember[]
+  oauthAccounts      OAuthAccount[]
   projectMemberships ProjectMember[]
+  sentWorkspaceInvitations WorkspaceInvitation[]
 }
 
 model OAuthAccount {
@@ -73,15 +79,15 @@ model Project {
   @@index([workspaceId])
 }
 
-model ProjectMember{
+model ProjectMember {
   projectId String
-  userId String
-  role ProjectRole @default(MEMBER)
+  userId    String
+  role      ProjectRole @default(MEMBER)
 
-  project Project @relation(fields: [projectId] , references: [id] , onDelete: Cascade)
-  user User @relation(fields: [userId] , references: [id] , onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-   @@id([projectId, userId])
+  @@id([projectId, userId])
 }
 
 model Workspace {
@@ -93,6 +99,7 @@ model Workspace {
   updatedAt DateTime          @updatedAt
   members   WorkspaceMember[]
   projects  Project[]
+  invitations WorkspaceInvitation[]
 }
 
 model WorkspaceMember {
@@ -110,7 +117,22 @@ model WorkspaceMember {
   @@index([workspaceId])
 }
 
+model WorkspaceInvitation {
+  id          String @id @default(cuid())
+  workspaceId String
+  email       String
+  invitedById String 
+  status      InvitationStatus @default(PENDING)
+  createdAt DateTime  @default(now())
 
-model WorkspaceInvitation{
-  
+  workspace Workspace @relation(fields: [workspaceId] , references: [id] , onDelete: Cascade)
+  invitedBy User @relation(fields: [invitedById] , references: [id])
+
+  @@index([workspaceId,email])
+  @@index([email,status])
 }
+
+
+
+
+

@@ -117,60 +117,226 @@ export async function updateWorkspaceLogo(slug: string, logoKey: string) {
   });
 }
 
-
-export async function addMembersToWorkspace(
+export async function createWorkspaceInvitation(
   workspaceId: string,
   email: string,
-  requestedByUserId:string
+  invitedById: string,
 ) {
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!normalizedEmail) {
+    throw new Error("Email is required");
+  }
 
-  const requesterMembership = await prisma.workspaceMember.findUnique({
+  const workspace = await prisma.workspace.findUnique({
+    where: {
+      id: workspaceId,
+    },
+  });
+
+  if (!workspace) {
+    throw new Error("Workspace not found");
+  }
+
+  const inviterMembership = await prisma.workspaceMember.findUnique({
     where: {
       userId_workspaceId: {
+        userId: invitedById,
         workspaceId,
-        userId:requestedByUserId
-      }
-    }
-    
-  })
+      },
+    },
+  });
 
   if (
-     !requesterMembership ||
-     !["OWNER", "ADMIN"].includes(requesterMembership.role)
-   ) {
-     throw new Error("Unauthorized to add workspace members");
+    !inviterMembership ||
+    !["OWNER", "ADMIN"].includes(inviterMembership.role)
+  ) {
+    throw new Error("Unauthorized to invite members");
   }
 
   const existingUser = await prisma.user.findUnique({
     where: {
-      email:email.trim().toLowerCase()
-    }
-  })
-
-  if (!existingUser) {
-    throw new Error("User not exist")
-  }
-
-  const existingMembership = await prisma.workspaceMember.findUnique({
-    where: {
-      userId_workspaceId: {
-        userId: existingUser.id,
-        workspaceId
-      }
-    }
-  })
-
-  if (existingMembership) {
-    throw new Error("User is already a member of this workspace");
-  }
-
- 
-  
-  return prisma.workspaceMember.create({
-    data: {
-      workspaceId,
-      userId:existingUser.id,
-      role: "MEMBER",
+      email: normalizedEmail,
     },
   });
+
+  if (existingUser) {
+    const existingMembership = await prisma.workspaceMember.findUnique({
+      where: {
+        userId_workspaceId: {
+          userId: existingUser.id,
+          workspaceId,
+        },
+      },
+    });
+
+    if (existingMembership) {
+      throw new Error("User is already a member of this workspace");
+    }
+  }
+
+  const existingInvitation = await prisma.workspaceInvitation.findFirst({
+    where: {
+      workspaceId,
+      email: normalizedEmail,
+      status: "PENDING",
+    },
+  });
+
+  if (existingInvitation) {
+    throw new Error("Invitation already pending");
+  }
+
+  return prisma.workspaceInvitation.create({
+    data: {
+      workspaceId,
+      email: normalizedEmail,
+      invitedById,
+    },
+  });
+}
+
+export async function getMyWorkspaceInvitation(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      email: true,
+    },
+  });
+
+  if (!user?.email) {
+    throw new Error("User not exist");
+  }
+
+  return prisma.workspaceInvitation.findMany({
+    where: {
+      email: user.email.trim().toLowerCase(),
+      status: "PENDING",
+    },
+    include: {
+      workspace: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+      invitedBy: {
+        select: {
+          id: true,
+          name:true
+        }
+      }
+      
+    },
+    orderBy: {
+      createdAt:"desc"
+    }
+    
+  });
+}
+
+export async function acceptWorkspaceInvitation(
+  invitationId: string,
+  userId: string,
+) {
+  return prisma.$transaction(async (tx) => {
+    const user = await tx.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        email: true,
+      },
+    });
+
+    if (!user?.email) {
+      throw new Error("User Email not found");
+    }
+
+    const invitation = await tx.workspaceInvitation.findUnique({
+      where: {
+        id: invitationId,
+      },
+    });
+
+    if (!invitation) {
+      throw new Error("Invitataion not found");
+    }
+    if (invitation.status !== "PENDING") {
+      throw new Error("Invitation is no longer pending");
+    }
+
+    if (invitation.email !== user.email.trim().toLowerCase()) {
+      throw new Error("Unauthorized to accept this invitation");
+    }
+
+    await tx.workspaceMember.create({
+      data: {
+        workspaceId: invitation.workspaceId,
+        userId,
+        role: "MEMBER"
+      },
+    });
+
+    return tx.workspaceInvitation.update({
+      where: {
+        id:invitationId
+      },
+      data: {
+        status:"ACCEPTED"
+      }
+    })
+  });
+}
+
+
+export async function rejectWorkspaceInvitation(invitationId: string, userId: string) {
+
+
+  
+    
+    const user = await prisma.user.findUnique({
+      where: {
+        id:userId
+      },
+      select: {
+        email:true
+      }
+    }) 
+
+    if (!user?.email) {
+      throw new Error("User email not found")
+    }
+
+    const invitation = await prisma.workspaceInvitation.findUnique({
+      where: {
+        id: invitationId,
+      },
+    });
+
+    if (!invitation) {
+      throw new Error("Invitataion not found");
+    }
+    if (invitation.status !== "PENDING") {
+      throw new Error("Invitation is no longer pending");
+    }
+
+    if (invitation.email !== user.email.trim().toLowerCase()) {
+      throw new Error("Unauthorized to reject this invitation");
+    }
+
+   
+    return prisma.workspaceInvitation.update({
+      where: {
+        
+        id: invitationId,
+        status:"PENDING"
+      },
+      data: {
+        status:"REJECTED"
+      }
+    })
+
 }
