@@ -225,7 +225,8 @@ export async function getMyWorkspaceInvitation(userId: string) {
       invitedBy: {
         select: {
           id: true,
-          name:true
+          name: true,
+          imageUrl:true
         }
       }
       

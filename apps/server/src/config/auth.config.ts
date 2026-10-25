@@ -41,6 +41,7 @@ passport.use(
           email: profile.emails?.[0]?.value ?? null,
           name:
             profile.displayName || profile.emails?.[0]?.value || "Google User",
+            imageUrl: profile.photos?.[0]?.value ?? null,
         });
 
         done(null, user);
@@ -66,6 +67,7 @@ passport.use(
           providerAccountId: profile.id,
           email: profile.emails?.find((entry) => entry.value)?.value ?? null,
           name: profile.displayName || profile.username || "GitHub User",
+          imageUrl: profile.photos?.[0]?.value ?? null,
         });
         done(null, user);
       } catch (error) {

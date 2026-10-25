@@ -70,7 +70,7 @@ export default function Sidebar() {
             </div>
           )}
           <div className="flex flex-col">
-            <div>{workspace.name.toUpperCase()} Workspace</div>
+            <div className="capitalize">{workspace.name} Workspace</div>
             <span className="text-sm font-medium text-[#F7F8F8]">
               workspace
             </span>

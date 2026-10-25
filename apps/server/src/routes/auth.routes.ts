@@ -59,7 +59,12 @@ router.get("/me", (req, res) => {
   const user = req.user as { id: string; name: string; email: string | null };
   return res.json({
     authenticated: true,
-    user: { id: user.id, name: user.name, email: user.email },
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      imageUrl: req.user.imageUrl,
+    },
   });
 });
 

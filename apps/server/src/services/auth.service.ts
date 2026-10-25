@@ -7,6 +7,7 @@ interface OAuthUserInput {
   providerAccountId: string;
   email: string | null;
   name: string;
+  imageUrl: string | null;
 }
 
 export async function findOrCreateOAuthUser(input: OAuthUserInput) {
@@ -26,7 +27,14 @@ export async function findOrCreateOAuthUser(input: OAuthUserInput) {
   });
 
   if (existingAccount) {
-    return existingAccount.user;
+    return await prisma.user.update({
+      where: {
+        id: existingAccount.user.id,
+      },
+      data: {
+        ...(input.imageUrl ? { imageUrl: input.imageUrl } : {}),
+      },
+    });
   }
   
 
@@ -48,6 +56,7 @@ export async function findOrCreateOAuthUser(input: OAuthUserInput) {
     data: {
       name: input.name.trim() || "Stride User",
       email,
+      imageUrl  :input.imageUrl,
       oauthAccounts: {
         create: {
           provider,
