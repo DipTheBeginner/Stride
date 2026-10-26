@@ -1,17 +1,14 @@
 "use client";
 
-import { LetterText } from "lucide-react";
-import { useWorkspace } from "./workspace-context";
+import formatInvitationDate from "@/lib/format-date";
 import Image from "next/image";
 
-
-interface InvitationCardProps{
-  name: string,
-  logoUrl: string | null,
-  inviterName: string,
-  inviterImageUrl: string | null,
-  createdAt: string
-  
+interface InvitationCardProps {
+  name: string;
+  logoUrl: string | null;
+  inviterName: string;
+  inviterImageUrl: string | null;
+  createdAt: string;
 }
 
 export default function InvitationCard({
@@ -21,25 +18,24 @@ export default function InvitationCard({
   inviterImageUrl,
   createdAt,
 }: InvitationCardProps) {
-
   const logoSrc =
     logoUrl?.startsWith("https://") || logoUrl?.startsWith("/")
       ? logoUrl
       : null;
 
   return (
-    <div className="flex justify-between">
+    <div className="flex justify-between bg-[#12151E] rounded-lg border p-6 border-slate-600 border-">
       <div className="flex gap-4">
         <Image
           src={logoSrc}
           alt={`${name} logo`}
           width={50}
           height={50}
-          className="rounded-lg object-cover"
+          className="rounded-lg object-cover p-"
         />
         <div className="">
           <span className="capitalize text-lg font-bold">{name}</span>
-          <div>
+          <div className="flex mt-2 gap-4">
             {inviterImageUrl ? (
               <Image
                 src={inviterImageUrl}
@@ -53,14 +49,25 @@ export default function InvitationCard({
                 {inviterName.charAt(0).toUpperCase()}
               </div>
             )}
-            <span>Invited by {inviterName}</span>
-            <span>duration</span>
+
+            <div className="flex items-center gap-3 text-sm">
+              <div>
+                <span>Invited by </span>
+                <span className="capitalize">{inviterName}</span>
+              </div>
+            
+              <span className="h-1 w-1 shrink-0 rounded-full bg-gray-400" />
+            
+              <span>{formatInvitationDate(createdAt)}</span>
+            </div>
           </div>
         </div>
       </div>
-      <div>
-        <button>Accept</button>
-        <button>Reject</button>
+      <div className="flex gap-4 items-center px-8">
+        <button className="bg-blue-600 rounded-lg px-8 py-3 ">Accept</button>
+        <button className="bg-[#11141E] rounded-lg p-8 py-3 border-slate-500 border">
+          Reject
+        </button>
       </div>
     </div>
   );

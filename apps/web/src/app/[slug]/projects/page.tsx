@@ -5,6 +5,7 @@ import { useState } from "react";
 import CreateProjectModal from "../../../../components/projects/create-project-modal";
 import ProjectCard from "../../../../components/projects/project-card";
 import { useProjects } from "../../../../components/projects/projects-context";
+import ProjectStatCard from "../../../../components/projects/project-stat-card";
 
 
 
@@ -13,49 +14,28 @@ export default function Projects() {
 
   const [isOpen, setIsOpen] = useState(false);
 
-  const {projects} = useProjects();
-
+  const { projects } = useProjects();
+  
+  
   return (
 
-    <div className=" flex flex-col p-6 min-h-screen">
+    <div className="flex flex-col p-6">
       <div className="flex justify-between">
-        <div className="flex flex-col">
-          
-        <div className="text-3xl font-bold">Projects</div>
-        <span className=" text-[#8A8F98]">Manage and organize your workspace projects</span>
-        <div>
-          boxes
+        <div className="flex flex-col gap-2">
+          <span className="text-2xl font-bold">Projects</span>
+          <span className="text-md text-slate-500">Manage and oraganize your workspace projects</span>
         </div>
-        </div>
-        <button onClick={() => setIsOpen((prev) => !prev)}
-          className="bg-[#4F54E7] flex">
-          <Plus/>
-          <span>New project</span>
+        <button className="bg-blue-600 flex items-center p-4 rounded-lg gap-4 justify-center">
+          <Plus />
+          <span>New Project</span>
         </button>
-        
       </div>
-      <div className="flex" >
-        <div className="flex flex-col">
-          <div>
-            <div>Search bar</div>
-            <div>statuses</div>
-            <div>sort by</div>
-            <div>view type</div>
-          </div>
-          <div className="">
-            {projects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-          </div>
-        </div>
-        <div>
-          project overview
-        </div>
+
+      <div>
+        <ProjectStatCard/>
       </div>
-      {
-        isOpen && <CreateProjectModal onClose={() => setIsOpen(false)}/>
-      }
     </div>
+ 
     
   )
 }

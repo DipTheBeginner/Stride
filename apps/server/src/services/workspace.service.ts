@@ -220,6 +220,7 @@ export async function getMyWorkspaceInvitation(userId: string) {
           id: true,
           name: true,
           slug: true,
+          logoUrl:true,
         },
       },
       invitedBy: {

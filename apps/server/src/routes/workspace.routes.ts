@@ -7,6 +7,7 @@ import {
   getMyWorkspaceInvitation,
   getUserWorkspace,
   getWorkspaceBySlug,
+  rejectWorkspaceInvitation,
   updateWorkspaceLogo,
 } from "../services/workspace.service";
 import { uploadWorkspacelogo } from "../middleware/upload.middleware";
@@ -304,7 +305,7 @@ router.post(
         });
       }
 
-      const member = await addMembersToWorkspace(
+      const member = await createWorkspaceInvitation(
         workspace.id,
         email,
         requestedByUserId,
@@ -426,9 +427,21 @@ router.get(
 
       const invitations = await getMyWorkspaceInvitation(userId);
 
+      const invitationsWithLogo = await Promise.all(
+        invitations.map(async (invitation) => ({
+          ...invitation,
+          workspace: {
+            ...invitation.workspace,
+            logoUrl: invitation.workspace.logoUrl
+              ? await getLogoSignedUrl(invitation.workspace.logoUrl)
+              : null,
+          },
+        })),
+      );
+
       return res.status(200).json({
         success: true,
-        invitations,
+        invitations :invitationsWithLogo
       });
     } catch (error) {
       console.error("Failed to fetch invitations:", error);

@@ -4,7 +4,6 @@ import { Mail } from "lucide-react";
 import InvitationCard from "../../../../components/workspace/workspace-invitation-card";
 import { useEffect, useState } from "react";
 
-
 interface Invitation {
   id: string;
   createdAt: string;
@@ -39,48 +38,54 @@ export default function WorkspaceInvitations() {
 
         const data = await response.json();
         setInvitations(data.invitations);
-        
       } catch (error) {
         console.error(error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
     fetchInvitations();
-  },[]);
+  }, []);
 
   return (
     <div className="p-8">
-      <div>
-        <Mail />
-        <div>
-          <span>Workspace Invitations</span>
-          <span>You have been invited to join these workspaces</span>
+      <div className="flex gap-4">
+        <div className="bg-[#171B27] p-4 px-6 items-center flex rounded-lg">
+          <Mail size={25} className="" />
+        </div>
+        <div className="flex flex-col gap-2">
+          <span className="text-3xl font-bold">Workspace Invitations</span>
+          <span className="text-md font-normal text-slate-300 ">
+            You have been invited to join these workspaces
+          </span>
         </div>
       </div>
 
-      <div>
-        <div>
-          <div>3 pending invitations</div>
+      <div className="mt-8 bg-[#141522] p-6 rounded-lg">
+        <div className="flex justify-between">
+          <div className="flex gap-2 text-lg">
+            <span>{invitations.length}</span>
+
+            <div>pending invitations</div>
+          </div>
           <div>sort by recent</div>
         </div>
-      </div>
 
-      <div>
-           <h1>Workspace Invitations</h1>
-     
-           {invitations.map((invitation) => (
-             <InvitationCard
-               key={invitation.id}
-               name={invitation.workspace.name}
-               logoUrl={invitation.workspace.logoUrl}
-               inviterName={invitation.invitedBy.name}
-               inviterImageUrl={invitation.invitedBy.imageUrl}
-               createdAt={invitation.createdAt}
-             />
-           ))}
-         </div>
+      <div className="mt-8">
+
+        {invitations.map((invitation) => (
+          <InvitationCard
+            key={invitation.id}
+            name={invitation.workspace.name}
+            logoUrl={invitation.workspace.logoUrl}
+            inviterName={invitation.invitedBy.name}
+            inviterImageUrl={invitation.invitedBy.imageUrl}
+            createdAt={invitation.createdAt}
+          />
+        ))}
+      </div>
+      </div>
     </div>
   );
 }
