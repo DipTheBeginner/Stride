@@ -45,28 +45,27 @@ export default function WorkspaceLogoUpload({ slug }: { slug: string }) {
     }
   }
 
-
   return (
-      <div className="flex flex-col gap-3">
-        <label className="cursor-pointer rounded-lg border border-[#363943] px-4 py-2 w-fit">
-          {upload ? "Uploading..." : "Change workspace logo"}
-  
-          <input
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            className="hidden"
-            disabled={upload}
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-  
-              if (file) void handleSubmitLogo(file);
-  
-              event.target.value = "";
-            }}
-          />
-        </label>
-  
-        {message && <p className="text-sm">{message}</p>}
-      </div>
-    );
+    <div className="flex flex-col gap-3">
+      <label className="cursor-pointer rounded-lg border border-[#363943] px-4 py-2 w-fit">
+        {upload ? "Uploading..." : "Change workspace logo"}
+
+        <input
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="hidden"
+          disabled={upload}
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+
+            if (file) void handleSubmitLogo(file);
+
+            event.target.value = "";
+          }}
+        />
+      </label>
+
+      {message && <p className="text-sm">{message}</p>}
+    </div>
+  );
 }

@@ -7,6 +7,7 @@ import {
 
 const router = Router();
 
+
 router.post(
   "/:workspaceId/createproject",
   authMiddleware,
@@ -20,7 +21,7 @@ router.post(
       }
 
       const userId = req.user.id;
-      const { name , description } = req.body;
+      const { name , description , icon , color } = req.body;
       const { workspaceId } = req.params;
       
 
@@ -54,11 +55,38 @@ router.post(
           ? description.trim()
           : null;
 
+      const allowedIcons = [
+        "folder",
+        "globe",
+        "smartphone",
+        "server",
+        "palette",
+      ];
+      
+      if (typeof icon !== "string" || !allowedIcons.includes(icon)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid project icon",
+        });
+      }
+      
+      if (
+        typeof color !== "string" ||
+        !/^#[0-9A-Fa-f]{6}$/.test(color)
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid project color",
+        });
+      }
+
       const project = await createProject(
         name.trim(),
         workspaceId.trim(),
         userId,
-        cleanDescription
+        cleanDescription,
+        icon,
+        color,
       );
 
       return res.status(201).json({

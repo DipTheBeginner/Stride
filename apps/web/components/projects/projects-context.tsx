@@ -12,6 +12,8 @@ export type Project = {
   workspaceId: string
   description: string | null
   status: "PLANNED" | "ACTIVE" | "ON_HOLD" | "COMPLETED" | "CANCELLED";
+  icon: string,
+  color : string
 }
 
 type ProjectsContextValue = {

@@ -34,8 +34,31 @@ export default function ProjectStatCard() {
   ];
 
   return (
-    <div>
-      
+    <div className="flex gap-4 ">
+      {projectStats.map((stat) => {
+        const Icon = stat.icon;
+
+        return (
+          <div
+            key={stat.title}
+            className="flex items-center gap-4 rounded-lg border px-8 py-3"
+          >
+            <div>
+              <div className="rounded-full border p-2">
+                
+              <Icon size={24} style={{ color: stat.color }} />
+              </div>
+            </div>
+
+            <div className="flex flex-col">
+              <span className="text-xl font-bold">{stat.value}</span>
+              <span className="text-sm text-gray-400">{stat.title}</span>
+            </div>
+
+            <div className="ml-auto">{/* We will implement this later */}</div>
+          </div>
+        );
+      })}
     </div>
   );
 }
