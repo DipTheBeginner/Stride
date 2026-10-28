@@ -6,7 +6,9 @@ export async function createProject(
   userId: string,
   description: string | null,
   icon: string,
-  color : string
+  color: string,
+  leadId: string | null,
+  memberIds: string[],
 ) {
   const membership = await prisma.workspaceMember.findUnique({
     where: {
@@ -21,6 +23,44 @@ export async function createProject(
     throw new Error("Unauthorized access to workspace");
   }
 
+  const selectedLeadId = leadId ?? userId;
+
+  const allMemberIds = [
+    userId,
+    selectedLeadId,
+    ...memberIds,
+  ]
+
+  const uniqueMemberIds = [...new Set(allMemberIds)]
+
+  const workspaceMembers = await prisma.workspaceMember.findMany({
+    where: {
+      workspaceId,
+      userId: {
+        in:uniqueMemberIds
+      }
+    },
+
+    select: {
+      userId:true
+    }
+    
+  })
+
+  if (workspaceMembers.length !== uniqueMemberIds.length) {
+    throw new Error("One or more selected users are not workspace members");
+  }
+
+  const projectMembers = uniqueMemberIds.map((memberId) => ({
+    userId: memberId,
+    role:
+      memberId === selectedLeadId
+        ? ("LEAD" as const)
+        :("MEMBER" as const)
+  }))
+
+
+
   const project = await prisma.project.create({
     data: {
       name,
@@ -28,14 +68,11 @@ export async function createProject(
       description,
       icon,
       color,
+      leadId,
       members: {
-        create: {
-          userId,
-          role:"LEAD"
-        }
-      }
+        create:projectMembers
+      },
     },
-    
   });
 
   return project;

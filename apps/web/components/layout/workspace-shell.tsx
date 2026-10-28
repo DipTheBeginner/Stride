@@ -6,7 +6,8 @@ import Sidebar from "./sidebar";
 
 import { WorkspaceProvider } from "../workspace/workspace-context";
 import { ProjectsProvider } from "../projects/projects-context";
-import Image from "next/image";
+import { useUser } from "../auth/user-context";
+import UserAvatar from "../ui/user-avatra";
 
 type Workspace = {
   id: string;
@@ -24,7 +25,8 @@ export default function WorkspaceShell({
 }) {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userImage, setUserImage] = useState<string | null>(null);
+
+  const { user, loading: userLoading } = useUser();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -66,25 +68,7 @@ export default function WorkspaceShell({
     return () => controller.abort();
   }, [slug]);
 
-  useEffect(() => {
-    async function fetchUser() {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/me`,
-        {
-          credentials: "include",
-        },
-      );
   
-      if (!response.ok) return;
-  
-      const data = await response.json();
-  
-      console.log("Logged-in user:", data);
-      setUserImage(data.user?.imageUrl ?? null);
-    }
-  
-    void fetchUser();
-  }, []);
 
   if (loading) {
     return <div>Loading workspace...</div>;
@@ -93,6 +77,8 @@ export default function WorkspaceShell({
   if (!workspace) {
     return <div>Workspace not found or access denied</div>;
   }
+
+  
 
   return (
     <WorkspaceProvider workspace={workspace}>
@@ -106,17 +92,14 @@ export default function WorkspaceShell({
             <header className=" flex h-16 items-center shrink-0 justify-center border-b border-[#363943]">
               Search bar
               <div>
-                {userImage ? (
-                  <Image
-                    src={userImage}
-                    alt="User profile"
-                    width={36}
-                    height={36}
-                    className="h-9 w-9 rounded-full object-cover"
-                    unoptimized
-                  />
+                {userLoading ? (
+                  <div className="h-9 w-9 animate-pulse rounded-full bg-[#302947]" />
                 ) : (
-                  <span>No profile image</span>
+                  <UserAvatar
+                    name={user?.name ?? "User"}
+                    imageUrl={user?.imageUrl}
+                    size={36}
+                  />
                 )}
               </div>
             </header>

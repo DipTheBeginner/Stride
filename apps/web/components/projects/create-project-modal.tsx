@@ -1,22 +1,48 @@
 "use client";
 
-import { ChevronDown, Plus, X } from "lucide-react";
-import { useState } from "react";
+import { ChevronDown, Plus, Slash, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useWorkspace } from "../workspace/workspace-context";
 import { useProjects } from "./projects-context";
 import { projectIcons } from "./project-icons";
+import UserAvatar from "../ui/user-avatra";
+import { useUser } from "../auth/user-context";
 
 type CreateProjectModalProps = {
   onClose: () => void;
 };
 
+type WorkspaceMember = {
+  userId: string;
+  user: {
+    id: string;
+    name: string;
+    imageUrl: string | null;
+    email: string | null;
+  };
+};
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function CreateProjectModal({
   onClose,
 }: CreateProjectModalProps) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
   const { refreshProjects } = useProjects();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+
+  const [members, setMembers] = useState<WorkspaceMember[]>([]);
+
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+
+  const [leadDropdownOpen, setLeadDropdownOpen] = useState(false);
+
+  const [membersDropdownOpen, setMembersDropdownOpen] = useState(false);
+
+  const { user } = useUser();
 
   const [icon, setIcon] = useState("folder");
   const [color, setColor] = useState("#9B72F2");
@@ -72,7 +98,38 @@ export default function CreateProjectModal({
     }
   }
 
+  useEffect(() => {
+    if (!slug) return;
+
+    async function fetchWorkspaceMembers() {
+      try {
+        const response = await fetch(
+          `${BASE_URL}/workspaces/${encodeURIComponent(slug)}/members`,
+          {
+            credentials: "include",
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch workspace members");
+        }
+
+        const data = await response.json();
+
+        setMembers(data.members);
+      } catch (error) {
+        console.error("Failed to fetch workspace members:", error);
+      }
+    }
+
+    fetchWorkspaceMembers();
+  }, [slug]);
+
   const SelectedIcons = projectIcons[icon as keyof typeof projectIcons];
+
+  const selectedLead = members.find(
+    (member) => member.userId === (selectedLeadId ?? user?.id),
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
@@ -92,14 +149,14 @@ export default function CreateProjectModal({
               </span>
             </div>
           </div>
-          <div>
+          <div onClick={() => onClose()}>
             <X />
           </div>
         </div>
 
-        <div className="mx-4 my-2 border-t border-white/10" />
+        <div className="-mx-9 border-t border-white/10 mt-6" />
 
-        <div className="grid grid-cols-[1.2fr_1fr] gap-6">
+        <div className="grid grid-cols-[1.2fr_1fr] gap-6 mt-5">
           {/*Left Side*/}
 
           <div className="flex flex-col gap-6">
@@ -124,22 +181,58 @@ export default function CreateProjectModal({
               <textarea
                 name=""
                 id=""
-                className=" bg-[#191E22] rounded-lg p-2"
+                className=" bg-[#191E22] rounded-lg p-3 h-36 resize-none"
                 placeholder="Briefly describe what this project is about"
-              ></textarea>
+              />
             </div>
 
-            <div className="flex flex-col gap-2 mt-6">
+            <div className="flex flex-col gap-2">
               <span className="text-md font-semibold">Project Lead</span>
               <span className="text-sm text-[#8A8F98] ">
                 Select a member to lead this project
               </span>
-              <div className="flex justify-between items-center rounded-lg p-2 bg-[#1A1E24] mt-2">
-                <div className="flex  items-center justify-between">
-                  <span className="rounded-full">.</span>
-                  <div>select a memeber from workspace</div>
+              <button
+                type="button"
+                onClick={() => setLeadDropdownOpen(!leadDropdownOpen)}
+                className="flex justify-between p-2 w-full rounded-lg bg-[#1A1E24] mt-2 cursor-pointer"
+              >
+                <div className="flex gap-2 items-center justify-center">
+                  <UserAvatar
+                    name={selectedLead?.user.name ?? user?.name ?? "user"}
+                    imageUrl={selectedLead?.user.imageUrl ?? user?.imageUrl}
+                    size={30}
+                  />
+                  <span className="capitalize">{selectedLead?.user.name ?? user?.name ?? "You"}</span>
                 </div>
+
                 <ChevronDown />
+              </button>
+
+              {leadDropdownOpen ?? (
+                <div>
+                  <button>
+                    
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <span className="text-md font-semibold">project Members</span>
+              <div className="flex gap-3 items-center mt-3">
+                <UserAvatar
+                  name={user?.name ?? "User"}
+                  imageUrl={user?.imageUrl}
+                  size={34}
+                />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-dotted border-[#9B72F2]">
+                  <Plus
+                    size={18}
+                    className="text-[#9B72F2]"
+                    onClick={() => setMembersDropdownOpen(!membersDropdownOpen)}
+                  />
+                </div>
+                <span className="text-sm text-[#8A8F98]">Add Members</span>
               </div>
             </div>
           </div>
@@ -203,14 +296,37 @@ export default function CreateProjectModal({
               <span>Status</span>
               <span>Set the inital status for your project</span>
 
-              <div>
-                <span className="""></span>
+              <div className="flex justify-between rounded-lg bg-[#1A1D23] p-2 mt-4">
+                <div className="flex">
+                  <div className="rounded-full p-1 bg-"></div>
+                  <span>Planned</span>
+                </div>
+                <ChevronDown />
               </div>
             </div>
 
+            <div className="flex flex-col mt-">
+              <span>Priority</span>
+              <div>Set the priority level</div>
+              <div className="flex flex-row justify-between mt-4 rounded-lg bg-[#1A1D23] p-2">
+                <div className="flex gap-4">
+                  <div>icon</div>
+                  <div>Medium</div>
+                </div>
+                <ChevronDown />
+              </div>
+            </div>
+          </div>
+        </div>
 
+        <div className="-mx-8 my-2 border-t border-white/10 mt-6" />
 
-            
+        <div className="flex mt-4 justify-end items-center gap-4">
+          <div className="px-10 border py-2 rounded-lg border-slate-500">
+            Cancel
+          </div>
+          <div className="px-10 border py-2 rounded-lg border-slate-500 bg-blue-700">
+            Create
           </div>
         </div>
       </div>

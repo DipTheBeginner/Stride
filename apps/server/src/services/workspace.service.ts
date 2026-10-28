@@ -220,22 +220,20 @@ export async function getMyWorkspaceInvitation(userId: string) {
           id: true,
           name: true,
           slug: true,
-          logoUrl:true,
+          logoUrl: true,
         },
       },
       invitedBy: {
         select: {
           id: true,
           name: true,
-          imageUrl:true
-        }
-      }
-      
+          imageUrl: true,
+        },
+      },
     },
     orderBy: {
-      createdAt:"desc"
-    }
-    
+      createdAt: "desc",
+    },
   });
 }
 
@@ -278,67 +276,84 @@ export async function acceptWorkspaceInvitation(
       data: {
         workspaceId: invitation.workspaceId,
         userId,
-        role: "MEMBER"
+        role: "MEMBER",
       },
     });
 
     return tx.workspaceInvitation.update({
       where: {
-        id:invitationId
+        id: invitationId,
       },
       data: {
-        status:"ACCEPTED"
-      }
-    })
+        status: "ACCEPTED",
+      },
+    });
   });
 }
 
+export async function rejectWorkspaceInvitation(
+  invitationId: string,
+  userId: string,
+) {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      email: true,
+    },
+  });
 
-export async function rejectWorkspaceInvitation(invitationId: string, userId: string) {
+  if (!user?.email) {
+    throw new Error("User email not found");
+  }
 
+  const invitation = await prisma.workspaceInvitation.findUnique({
+    where: {
+      id: invitationId,
+    },
+  });
 
-  
-    
-    const user = await prisma.user.findUnique({
-      where: {
-        id:userId
+  if (!invitation) {
+    throw new Error("Invitataion not found");
+  }
+  if (invitation.status !== "PENDING") {
+    throw new Error("Invitation is no longer pending");
+  }
+
+  if (invitation.email !== user.email.trim().toLowerCase()) {
+    throw new Error("Unauthorized to reject this invitation");
+  }
+
+  return prisma.workspaceInvitation.update({
+    where: {
+      id: invitationId,
+      status: "PENDING",
+    },
+    data: {
+      status: "REJECTED",
+    },
+  });
+}
+
+export async function getWorkspaceMembers(workspaceId: string) {
+  const workspaceMembers = await prisma.workspaceMember.findMany({
+    where: {
+      workspaceId,
+    },
+    select: {
+      userId: true,
+
+      user: {
+        select: {
+          id: true,
+          name: true,
+          imageUrl: true,
+          email: true,
+        },
       },
-      select: {
-        email:true
-      }
-    }) 
+    },
+  });
 
-    if (!user?.email) {
-      throw new Error("User email not found")
-    }
-
-    const invitation = await prisma.workspaceInvitation.findUnique({
-      where: {
-        id: invitationId,
-      },
-    });
-
-    if (!invitation) {
-      throw new Error("Invitataion not found");
-    }
-    if (invitation.status !== "PENDING") {
-      throw new Error("Invitation is no longer pending");
-    }
-
-    if (invitation.email !== user.email.trim().toLowerCase()) {
-      throw new Error("Unauthorized to reject this invitation");
-    }
-
-   
-    return prisma.workspaceInvitation.update({
-      where: {
-        
-        id: invitationId,
-        status:"PENDING"
-      },
-      data: {
-        status:"REJECTED"
-      }
-    })
-
+  return workspaceMembers;
 }

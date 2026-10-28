@@ -21,7 +21,7 @@ router.post(
       }
 
       const userId = req.user.id;
-      const { name , description , icon , color } = req.body;
+      const { name , description , icon , color , memberIds , leadId } = req.body;
       const { workspaceId } = req.params;
       
 
@@ -47,6 +47,30 @@ router.post(
         return res.status(400).json({
           success: false,
           message: "Description must be a string",
+        });
+      }
+
+      if (
+        leadId !== undefined &&
+        leadId !== null &&
+        (typeof leadId !== "string" || leadId.trim() === "")
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid project lead",
+        });
+      }
+
+      if (
+        memberIds !== undefined &&
+        (!Array.isArray(memberIds) ||
+          !memberIds.every(
+            (id: unknown) => typeof id === "string" && id.trim() !== "",
+          ))
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid project members",
         });
       }
 
@@ -87,6 +111,8 @@ router.post(
         cleanDescription,
         icon,
         color,
+        memberIds ?? [] ,
+        leadId ?? null
       );
 
       return res.status(201).json({

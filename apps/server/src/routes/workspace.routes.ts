@@ -7,6 +7,7 @@ import {
   getMyWorkspaceInvitation,
   getUserWorkspace,
   getWorkspaceBySlug,
+  getWorkspaceMembers,
   rejectWorkspaceInvitation,
   updateWorkspaceLogo,
 } from "../services/workspace.service";
@@ -441,7 +442,7 @@ router.get(
 
       return res.status(200).json({
         success: true,
-        invitations :invitationsWithLogo
+        invitations: invitationsWithLogo,
       });
     } catch (error) {
       console.error("Failed to fetch invitations:", error);
@@ -571,5 +572,74 @@ router.post("/reject", authMiddleware, async (req: Request, res: Response) => {
     });
   }
 });
+
+router.get(
+  "/:slug/members",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "user not exist",
+        });
+      }
+
+      const { slug } = req.params;
+
+      if (typeof slug !== "string" || !slug.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid workspace slug",
+        });
+      }
+
+      const workspace = await prisma.workspace.findUnique({
+        where: {
+          slug,
+        },
+      });
+
+      if (!workspace) {
+        return res.status(404).json({
+          success: false,
+          message: "Workspace not found",
+        });
+      }
+
+      const workspaceId = workspace.id;
+
+      const membership = await prisma.workspaceMember.findUnique({
+        where: {
+          userId_workspaceId: {
+            userId: req.user.id,
+            workspaceId: workspace.id,
+          },
+        },
+      });
+
+      if (!membership) {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized access to workspace",
+        });
+      }
+
+      const members = await getWorkspaceMembers(workspaceId);
+
+      return res.status(200).json({
+        success: true,
+        members,
+      });
+    } catch (error) {
+      console.error("Failed to fetch workspace members:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch workspace members",
+      });
+    }
+  },
+);
 
 export default router;

@@ -38,6 +38,13 @@ enum InvitationStatus {
   PENDING
 }
 
+enum ProjectPriority {
+LOW
+MEDIUM
+HIGH
+URGENT
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -50,6 +57,7 @@ model User {
   oauthAccounts      OAuthAccount[]
   projectMemberships ProjectMember[]
   sentWorkspaceInvitations WorkspaceInvitation[]
+  ledProjects Project[] @relation("ProjectLead")
 }
 
 model OAuthAccount {
@@ -75,6 +83,10 @@ model Project {
   updatedAt DateTime @updatedAt
 
   workspaceId String
+  priority ProjectPriority @default(MEDIUM)
+  leadId String?
+  
+  lead User? @relation("ProjectLead" , fields: [leadId] , references: [id] , onDelete: SetNull)
 
   workspace Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   members   ProjectMember[]
