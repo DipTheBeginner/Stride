@@ -9,6 +9,8 @@ export async function createProject(
   color: string,
   leadId: string | null,
   memberIds: string[],
+  status: "PLANNED" | "ACTIVE" | "ON_HOLD" | "COMPLETED" | "CANCELLED",
+  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT",
 ) {
   const membership = await prisma.workspaceMember.findUnique({
     where: {
@@ -25,27 +27,22 @@ export async function createProject(
 
   const selectedLeadId = leadId ?? userId;
 
-  const allMemberIds = [
-    userId,
-    selectedLeadId,
-    ...memberIds,
-  ]
+  const allMemberIds = [userId, selectedLeadId, ...memberIds];
 
-  const uniqueMemberIds = [...new Set(allMemberIds)]
+  const uniqueMemberIds = [...new Set(allMemberIds)];
 
   const workspaceMembers = await prisma.workspaceMember.findMany({
     where: {
       workspaceId,
       userId: {
-        in:uniqueMemberIds
-      }
+        in: uniqueMemberIds,
+      },
     },
 
     select: {
-      userId:true
-    }
-    
-  })
+      userId: true,
+    },
+  });
 
   if (workspaceMembers.length !== uniqueMemberIds.length) {
     throw new Error("One or more selected users are not workspace members");
@@ -53,13 +50,8 @@ export async function createProject(
 
   const projectMembers = uniqueMemberIds.map((memberId) => ({
     userId: memberId,
-    role:
-      memberId === selectedLeadId
-        ? ("LEAD" as const)
-        :("MEMBER" as const)
-  }))
-
-
+    role: memberId === selectedLeadId ? ("LEAD" as const) : ("MEMBER" as const),
+  }));
 
   const project = await prisma.project.create({
     data: {
@@ -68,9 +60,11 @@ export async function createProject(
       description,
       icon,
       color,
-      leadId,
+      leadId: selectedLeadId,
+      status,
+      priority,
       members: {
-        create:projectMembers
+        create: projectMembers,
       },
     },
   });

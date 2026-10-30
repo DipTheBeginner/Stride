@@ -10,8 +10,7 @@ import {
   Home,
   Inbox,
   Layers,
-  Minus,
-  Plus,
+ 
   Search,
   User,
   Users,

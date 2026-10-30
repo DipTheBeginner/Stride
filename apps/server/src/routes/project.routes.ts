@@ -7,7 +7,6 @@ import {
 
 const router = Router();
 
-
 router.post(
   "/:workspaceId/createproject",
   authMiddleware,
@@ -21,9 +20,17 @@ router.post(
       }
 
       const userId = req.user.id;
-      const { name , description , icon , color , memberIds , leadId } = req.body;
+      const {
+        name,
+        description,
+        icon,
+        color,
+        memberIds,
+        leadId,
+        status,
+        priority,
+      } = req.body;
       const { workspaceId } = req.params;
-      
 
       if (typeof workspaceId !== "string" || workspaceId.trim() === "") {
         return res.status(400).json({
@@ -38,7 +45,7 @@ router.post(
           message: "Project name is required",
         });
       }
-      
+
       if (
         description !== undefined &&
         description !== null &&
@@ -86,18 +93,15 @@ router.post(
         "server",
         "palette",
       ];
-      
+
       if (typeof icon !== "string" || !allowedIcons.includes(icon)) {
         return res.status(400).json({
           success: false,
           message: "Invalid project icon",
         });
       }
-      
-      if (
-        typeof color !== "string" ||
-        !/^#[0-9A-Fa-f]{6}$/.test(color)
-      ) {
+
+      if (typeof color !== "string" || !/^#[0-9A-Fa-f]{6}$/.test(color)) {
         return res.status(400).json({
           success: false,
           message: "Invalid project color",
@@ -105,14 +109,16 @@ router.post(
       }
 
       const project = await createProject(
-        name.trim(),
-        workspaceId.trim(),
+        name,
+        workspaceId,
         userId,
-        cleanDescription,
+        description,
         icon,
         color,
-        memberIds ?? [] ,
-        leadId ?? null
+        leadId,
+        memberIds,
+        status,
+        priority,
       );
 
       return res.status(201).json({
