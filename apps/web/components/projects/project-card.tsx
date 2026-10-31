@@ -1,6 +1,7 @@
-import { Folder} from "lucide-react";
+import { Folder } from "lucide-react";
 import { Project } from "./projects-context";
 import { projectIcons } from "./project-icons";
+import Image from "next/image";
 
 type ProjectCardProps = {
   project: Project;
@@ -14,8 +15,8 @@ const statusConfig = {
   },
   ACTIVE: {
     label: "Active",
-    textColor: "text-blue-400",
-    bgColor: "bg-blue-500/10",
+    textColor: "text-green-400",
+    bgColor: "bg-green-500/10",
   },
   ON_HOLD: {
     label: "On hold",
@@ -35,11 +36,11 @@ const statusConfig = {
 };
 
 export default function ProjectCard({ project }: ProjectCardProps) {
+  const Icon =
+    projectIcons[project.icon as keyof typeof projectIcons] ?? Folder;
+  const status = statusConfig[project.status as keyof typeof statusConfig];
 
-  
-  const Icon = projectIcons[project.icon as keyof typeof projectIcons] ?? Folder;
-
-  const status = statusConfig[project.status];
+  const progrss = 0;
 
   return (
     <div className="grid grid-cols-[auto_minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] border rounded-lg justify-between p-6 items-center">
@@ -50,21 +51,58 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         <Icon size={25} style={{ color: project.color }} />
       </div>
 
-      <div className="flex flex-col px-5">
-        <span>{project.name}</span>
-        <span>{project.description}</span>
+      <div className="flex flex-col gap-1 px-5">
+        <h3 className="text-xl font-semibold text-foreground">
+          {project.name}
+        </h3>
+
+        <p className="text-sm text-muted-foreground line-clamp-2">
+          {project.description}
+        </p>
       </div>
 
-      <div className="flex flex-col">
-        <div>{project.status}</div>
-        <div>{project.members}</div>
+      <div className="flex flex-col gap-4">
+        <div
+          className={`flex w-fit items-center gap-2 rounded-md px-2.5 py-1 text-md font-medium ${status.textColor} ${status.bgColor}`}
+        >
+          <span className="h-1.5 w-1.5 rounded-full bg-current" />
+          {status.label}
+        </div>
+
+        <div className="flex items-center -space-x-2">
+          {project.members.slice(0, 4).map((member) => (
+            <div
+              key={member.userId}
+              title={member.user.name}
+              className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border-2 border-background bg-zinc-700 text-xs font-medium text-white"
+            >
+              {member.user.imageUrl ? (
+                <Image
+                  src={member.user.imageUrl}
+                  alt={member.user.name}
+                  width={28}
+                  height={28}
+                />
+              ) : (
+                member.user.name?.charAt(0).toUpperCase() || "?"
+              )}
+            </div>
+          ))}
+
+          {project.members.length > 4 && (
+            <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-zinc-800 text-xs text-white">
+              +{project.members.length - 4}
+            </div>
+          )}
+        </div>
+
+        
       </div>
 
-      <div className="flex flex-col">
-        <div>completion bar</div>
-        <div>task completeion</div>
+      <div>
+        <span>task bar</span>
+        <span>task</span>
       </div>
-
       <div>setting</div>
     </div>
   );

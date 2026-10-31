@@ -87,6 +87,19 @@ export async function getWorkspaceProjectsBySlug(slug: string, userId: string) {
         orderBy: {
           createdAt: "desc",
         },
+        include: {
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  imageUrl:true
+                }
+              }
+            }
+          }
+        }
       },
     },
   });

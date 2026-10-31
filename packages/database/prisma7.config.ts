@@ -3,7 +3,7 @@ import path from "path";
 import { defineConfig } from "prisma/config";
 
 dotenv.config({
-  path: path.resolve(process.cwd(), "packages/database/.env"),
+  path: path.resolve(import.meta.dirname, ".env"),
 });
 
 export default defineConfig({

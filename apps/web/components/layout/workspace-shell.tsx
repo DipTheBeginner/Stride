@@ -83,12 +83,12 @@ export default function WorkspaceShell({
   return (
     <WorkspaceProvider workspace={workspace}>
       <ProjectsProvider>
-        <div className="flex min-h-screen w-full">
+        <div className="fixed inset-0 flex w-full overflow-hidden">
           <aside className="w-[20%] shrink-0 border-r border-[#363943]">
             <Sidebar />
           </aside>
 
-          <div className="flex flex-1 flex-col min-w-0">
+          <div className="flex flex-1 flex-col min-w-0 min-h-0">
             <header className=" flex h-16 items-center shrink-0 justify-center border-b border-[#363943]">
               Search bar
               <div>
@@ -104,7 +104,9 @@ export default function WorkspaceShell({
               </div>
             </header>
 
-            <div className="flex-1 min-w-0">{children}</div>
+            <main className="min-h-0 min-w-0 flex-1 overflow-hidden">
+              {children}
+            </main>
           </div>
         </div>
       </ProjectsProvider>

@@ -39,10 +39,16 @@ enum InvitationStatus {
 }
 
 enum ProjectPriority {
-LOW
-MEDIUM
-HIGH
-URGENT
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  COMPLETED
 }
 
 model User {
@@ -51,13 +57,13 @@ model User {
   email     String?  @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  imageUrl String?
+  imageUrl  String?
 
-  memberships        WorkspaceMember[]
-  oauthAccounts      OAuthAccount[]
-  projectMemberships ProjectMember[]
+  memberships              WorkspaceMember[]
+  oauthAccounts            OAuthAccount[]
+  projectMemberships       ProjectMember[]
   sentWorkspaceInvitations WorkspaceInvitation[]
-  ledProjects Project[] @relation("ProjectLead")
+  ledProjects              Project[]             @relation("ProjectLead")
 }
 
 model OAuthAccount {
@@ -76,22 +82,33 @@ model Project {
   name        String
   description String?
   status      ProjectStatus @default(PLANNED)
-  icon String @default("folder")
-  color String @default("#9B72F2")
+  icon        String        @default("folder")
+  color       String        @default("#9B72F2")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   workspaceId String
-  priority ProjectPriority @default(MEDIUM)
-  leadId String?
-  
-  lead User? @relation("ProjectLead" , fields: [leadId] , references: [id] , onDelete: SetNull)
+  priority    ProjectPriority @default(MEDIUM)
+  leadId      String?
+  tasks       Task[]
+
+  lead User? @relation("ProjectLead", fields: [leadId], references: [id], onDelete: SetNull)
 
   workspace Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   members   ProjectMember[]
 
   @@index([workspaceId])
+}
+
+model Task {
+  id        String     @id @default(cuid())
+  title     String
+  status    TaskStatus @default(TODO)
+  projectId String
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 model ProjectMember {
@@ -106,14 +123,14 @@ model ProjectMember {
 }
 
 model Workspace {
-  id        String            @id @default(cuid())
-  name      String
-  slug      String            @unique
-  logoUrl   String?
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-  members   WorkspaceMember[]
-  projects  Project[]
+  id          String                @id @default(cuid())
+  name        String
+  slug        String                @unique
+  logoUrl     String?
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  members     WorkspaceMember[]
+  projects    Project[]
   invitations WorkspaceInvitation[]
 }
 
@@ -133,21 +150,16 @@ model WorkspaceMember {
 }
 
 model WorkspaceInvitation {
-  id          String @id @default(cuid())
+  id          String           @id @default(cuid())
   workspaceId String
   email       String
-  invitedById String 
+  invitedById String
   status      InvitationStatus @default(PENDING)
-  createdAt DateTime  @default(now())
+  createdAt   DateTime         @default(now())
 
-  workspace Workspace @relation(fields: [workspaceId] , references: [id] , onDelete: Cascade)
-  invitedBy User @relation(fields: [invitedById] , references: [id])
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invitedBy User      @relation(fields: [invitedById], references: [id])
 
-  @@index([workspaceId,email])
-  @@index([email,status])
+  @@index([workspaceId, email])
+  @@index([email, status])
 }
-
-
-
-
-

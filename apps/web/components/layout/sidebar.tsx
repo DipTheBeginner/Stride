@@ -40,7 +40,7 @@ export default function Sidebar() {
   const [teamsOpen, setTeamsOpen] = useState(true);
 
   return (
-    <div className="bg-[#010101] min-h-screen flex flex-col">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[#010101]">
       <div className="flex gap-3 items-center ">
         <Image
           className="rounded-xl"

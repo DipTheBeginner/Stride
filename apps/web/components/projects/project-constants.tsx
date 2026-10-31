@@ -10,7 +10,7 @@ export type WorkspaceMember = {
 
 export const projectStatuses = [
   { value: "PLANNED", label: "Planned", color: "#94A3B8" },
-  { value: "IN_PROGRESS", label: "In Progress", color: "#3B82F6" },
+  { value: "ACTIVE", label: "Active", color: "#3B82F6" },
   { value: "ON_HOLD", label: "On Hold", color: "#F59E0B" },
   { value: "COMPLETED", label: "Completed", color: "#22C55E" },
 ];
