@@ -88,10 +88,17 @@ router.post(
 
       const allowedIcons = [
         "folder",
+        "code",
         "globe",
         "smartphone",
         "server",
         "palette",
+        "rocket",
+        "megaphone",
+        "briefcase",
+        "chart",
+        "lightbulb",
+        "target",
       ];
 
       if (typeof icon !== "string" || !allowedIcons.includes(icon)) {
