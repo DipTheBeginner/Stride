@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
@@ -9,6 +9,7 @@ import { projectIcons } from "./project-icons";
 import { WorkspaceMember } from "./project-constants";
 import ProjectTeamSelectors from "./project-team-selectors";
 import ProjectAttributesPanel from "./project-atrributes-panel";
+import ProjectDateTags from "./project-date-tags";
 
 type CreateProjectModalProps = {
   onClose: () => void;
@@ -33,10 +34,19 @@ export default function CreateProjectModal({
   const [color, setColor] = useState("#9B72F2");
   const [priority, setPriority] = useState("MEDIUM");
   const [isCreating, setIsCreating] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
+
+  const [startDate, setStartDate] = useState("");
+  const [dueDate, setDueDate] = useState("");
 
   async function handlecreateProject() {
     if (!name.trim()) {
       console.error("Project name is required");
+      return;
+    }
+
+    if (!startDate || !dueDate || dueDate < startDate) {
+      console.error("Valid project dates are required");
       return;
     }
 
@@ -57,20 +67,25 @@ export default function CreateProjectModal({
             memberIds: selectedMemberIds,
             priority,
             status,
+            tags,
+            startDate,
+            dueDate,
           }),
         },
       );
 
       if (!response.ok) {
         const errorBody = await response.text();
-        throw new Error(`Failed to create project: ${response.status} ${errorBody}`);
+        throw new Error(
+          `Failed to create project: ${response.status} ${errorBody}`,
+        );
       }
 
       await refreshProjects();
       onClose();
     } catch (error) {
       console.error("Failed to create project:", error);
-    }finally {
+    } finally {
       setIsCreating(false);
     }
   }
@@ -103,11 +118,14 @@ export default function CreateProjectModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-      <div className="flex flex-col rounded-lg bg-[#15191E] p-8">
+      <div className="flex flex-col rounded-lg bg-[#15191E] p-5">
         {/* Header */}
         <div className="flex justify-between rounded-lg bg-[#15191E]">
           <div className="flex items-center gap-6">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-[#252748] p-4">
+            <div
+              className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl"
+              style={{ backgroundColor: `${color}20` }}
+            >
               <SelectedIcons size={30} style={{ color }} />
             </div>
             <div className="flex flex-col gap-3">
@@ -117,24 +135,22 @@ export default function CreateProjectModal({
               </span>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="cursor-pointer self-start">
+          <button
+            type="button"
+            onClick={onClose}
+            className="cursor-pointer self-start"
+          >
             <X />
           </button>
         </div>
 
-        <div className="-mx-9 mt-6 border-t border-white/10" />
+        <div className="mt-4 border-t border-white/10" />
 
         {/* Body */}
-        <div className="mt-5 grid grid-cols-[1.2fr_1fr] gap-6">
+        <div className="mt-4 grid grid-cols-[1.2fr_1fr] gap-6">
           {/* Left Side */}
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-              <span className="text-lg font-semibold">Basic Information</span>
-              <span className="text-sm text-[#8A8F98]">
-                Give your project a clear name and description
-              </span>
-            </div>
-
+            
             <div className="flex flex-col gap-2">
               <span className="text-md font-semibold">Project name</span>
               <input
@@ -149,7 +165,7 @@ export default function CreateProjectModal({
             <div className="flex flex-col gap-2">
               <span className="text-md font-semibold">Description</span>
               <textarea
-                className="h-36 resize-none rounded-lg bg-[#191E22] p-3"
+                className="h-20 resize-none rounded-lg bg-[#191E22] p-3"
                 placeholder="Briefly describe what this project is about"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -163,6 +179,15 @@ export default function CreateProjectModal({
               setSelectedLeadId={setSelectedLeadId}
               selectedMemberIds={selectedMemberIds}
               setSelectedMemberIds={setSelectedMemberIds}
+            />
+
+            <ProjectDateTags
+              tags={tags}
+              setTags={setTags}
+              startDate={startDate}
+              setStartDate={setStartDate}
+              dueDate={dueDate}
+              setDueDate={setDueDate}
             />
           </div>
 
@@ -179,7 +204,7 @@ export default function CreateProjectModal({
           />
         </div>
 
-        <div className="-mx-8 my-2 mt-6 border-t border-white/10" />
+        <div className="my-2 mt-4 border-t border-white/10" />
 
         {/* Footer */}
         <div className="mt-4 flex items-center justify-end gap-4">
@@ -193,7 +218,13 @@ export default function CreateProjectModal({
           <button
             type="button"
             onClick={handlecreateProject}
-            disabled={isCreating || !name.trim()}
+            disabled={
+              isCreating ||
+              !name.trim() ||
+              !startDate ||
+              !dueDate ||
+              dueDate < startDate
+            }
             className="cursor-pointer rounded-lg border border-slate-500 bg-blue-700 px-10 py-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isCreating ? "Creating..." : "Create"}

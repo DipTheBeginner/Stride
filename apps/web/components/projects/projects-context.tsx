@@ -18,6 +18,7 @@ export type Project = {
   status: "PLANNED" | "ACTIVE" | "ON_HOLD" | "COMPLETED" | "CANCELLED";
   icon: string;
   color: string;
+  priority: string;
 
   members: {
     userId: string;

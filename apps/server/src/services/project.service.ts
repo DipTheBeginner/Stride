@@ -11,6 +11,9 @@ export async function createProject(
   memberIds: string[],
   status: "PLANNED" | "ACTIVE" | "ON_HOLD" | "COMPLETED" | "CANCELLED",
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT",
+  tags: string[],
+  dueDate: string,
+  startDate: string,
 ) {
   const membership = await prisma.workspaceMember.findUnique({
     where: {
@@ -63,6 +66,9 @@ export async function createProject(
       leadId: selectedLeadId,
       status,
       priority,
+      tags,
+      startDate: new Date(startDate),
+      dueDate: new Date(dueDate),
       members: {
         create: projectMembers,
       },
@@ -94,12 +100,12 @@ export async function getWorkspaceProjectsBySlug(slug: string, userId: string) {
                 select: {
                   id: true,
                   name: true,
-                  imageUrl:true
-                }
-              }
-            }
-          }
-        }
+                  imageUrl: true,
+                },
+              },
+            },
+          },
+        },
       },
     },
   });

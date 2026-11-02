@@ -100,6 +100,9 @@ model Project {
 
   workspace Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   members   ProjectMember[]
+  tags String[]
+  startDate DateTime
+  dueDate DateTime
 
   @@index([workspaceId])
 }

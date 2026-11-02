@@ -29,6 +29,9 @@ router.post(
         leadId,
         status,
         priority,
+        tags,
+        dueDate,
+        startDate
       } = req.body;
       const { workspaceId } = req.params;
 
@@ -81,6 +84,38 @@ router.post(
         });
       }
 
+      if (
+        typeof startDate !== "string" ||
+        typeof dueDate !== "string" ||
+        !startDate.trim() ||
+        !dueDate.trim() ||
+        Number.isNaN(Date.parse(startDate)) ||
+        Number.isNaN(Date.parse(dueDate))
+      ) {
+        return res.status(400).json({
+          message: "Valid start date and due date are required",
+        });
+      }
+      
+      if (new Date(dueDate) < new Date(startDate)) {
+        return res.status(400).json({
+          message: "Due date cannot be earlier than start date",
+        });
+      }
+
+      if (
+        !Array.isArray(tags) ||
+        !tags.every(
+          (tag: unknown) =>
+            typeof tag === "string" && tag.trim() !== ""
+        )
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Tags must be an array of non-empty strings",
+        });
+      }
+
       const cleanDescription =
         typeof description === "string" && description.trim()
           ? description.trim()
@@ -126,6 +161,9 @@ router.post(
         memberIds,
         status,
         priority,
+        tags,
+        dueDate,
+        startDate,
       );
 
       return res.status(201).json({
