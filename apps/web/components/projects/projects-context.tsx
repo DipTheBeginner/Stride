@@ -19,6 +19,9 @@ export type Project = {
   icon: string;
   color: string;
   priority: string;
+  tags: string[];
+  startDate: string;
+  dueDate: string;
 
   members: {
     userId: string;

@@ -5,11 +5,15 @@ import CreateProjectModal from "../../../../components/projects/create-project-m
 import { useState } from "react";
 import ProjectCard from "../../../../components/projects/project-card";
 import { useProjects } from "../../../../components/projects/projects-context";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function Projects() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const {projects} = useProjects()
+  const { projects } = useProjects()
+  const pathname = usePathname()
+
+  const router = useRouter();
 
   return (
     <div>
@@ -34,6 +38,7 @@ export default function Projects() {
           <ProjectCard
             key={project.id}
             project={project}
+             onClick={() => router.push(`${pathname}/${project.id}`)}
           />
         ))}
       </div>

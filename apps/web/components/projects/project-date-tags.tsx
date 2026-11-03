@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -16,6 +15,7 @@ type ProjectDateTagsProps = {
   setDueDate: React.Dispatch<React.SetStateAction<string>>;
 };
 
+
 export default function ProjectDateTags({
   tags,
   setTags,
@@ -29,34 +29,28 @@ export default function ProjectDateTags({
   function addTag() {
     const newTag = tagInput.trim();
 
-    if (!newTag) return;
+    if (!newTag) {
+      return;
+    }
 
-    if (
-      tags.some(
-        (tag) => tag.toLowerCase() === newTag.toLowerCase()
-      )
-    ) {
+    if (tags.some((tag) => tag.toLowerCase() === newTag.toLowerCase())) {
       return;
     }
 
     setTags((prev) => [...prev, newTag]);
-    setTagInput("");
+    setTagInput("")
   }
 
-  function removeTag(tagToRemove: string) {
-    setTags((prev) =>
-      prev.filter((tag) => tag !== tagToRemove)
-    );
-  }
+  function removeTag(tagtoRemove: string) {
+    setTags((prev)=>prev.filter((tag)=>tag!==tagtoRemove))
+ }
 
   return (
     <div className="flex flex-col gap-5">
       {/* Project Dates */}
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-2">
-          <span className="text-sm font-semibold">
-            Start date *
-          </span>
+          <span className="text-sm font-semibold">Start date *</span>
 
           <DatePicker
             value={startDate}
@@ -72,9 +66,7 @@ export default function ProjectDateTags({
         </div>
 
         <div className="flex flex-col gap-2">
-          <span className="text-sm font-semibold">
-            Due date *
-          </span>
+          <span className="text-sm font-semibold">Due date *</span>
 
           <DatePicker
             value={dueDate}
@@ -85,51 +77,31 @@ export default function ProjectDateTags({
         </div>
       </div>
 
-      {/* Project Tags */}
       <div className="flex flex-col gap-2">
-        <span className="text-sm font-semibold">
-          Project tags
-        </span>
-
+        <span>Project tags</span>
         <div className="flex min-h-11 flex-wrap items-center gap-2 rounded-lg border border-white/10 bg-[#191E22] px-3 py-2">
           {tags.map((tag) => (
-            <div
-              key={tag}
-              className="flex items-center gap-1.5 rounded-md bg-[#30334C] px-2 py-1 text-xs text-[#C4B5FD]"
-            >
+            <div key={tag} className="flex items-center gap-1.5 rounded-md bg-[#30334C] px-2 py-1 text-xs  text-[#C4B5FD]">
               <span>{tag}</span>
-
-              <button
-                type="button"
-                onClick={() => removeTag(tag)}
-                className="cursor-pointer text-[#C4B5FD] transition-colors hover:text-white"
-                aria-label={`Remove ${tag}`}
-              >
-                <X size={13} />
+              <button className="cursor-pointer text-[#C4B5FD] transition-colors hover:text-white" onClick={() => removeTag(tag)}
+                aria-label={`Remove ${tag}`}>
+                <X size={10}/>
               </button>
             </div>
           ))}
 
-          <input
-            type="text"
-            value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
+          <input type="text" value={tagInput} onChange={(e) => setTagInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
                 addTag();
               }
-            }}
-            placeholder={
-              tags.length === 0 ? "Add a tag..." : "Add more..."
-            }
-            className="min-w-28 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-[#8A8F98]"
-          />
-        </div>
+              
+            }} placeholder={tags.length === 0 ? "Add a tag..." : "Add more"}
 
-        <span className="text-xs text-[#8A8F98]">
-          Press Enter to add a tag
-        </span>
+          className="minw-28 bg-transparent text-sm text-white outline-none placeholder:text-[#8A8F98]"/>
+        </div>
+        
       </div>
     </div>
   );
