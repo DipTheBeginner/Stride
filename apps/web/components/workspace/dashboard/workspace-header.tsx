@@ -22,7 +22,7 @@ export default function WorkspaceHeader() {
 
   async function InviteMembers() {
 
-    const member = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workspaces/${encodeURIComponent(slug)}/addmember`, {
+    const member = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workspaces/${encodeURIComponent(slug)}/work`, {
 
       method: "POST",
       credentials: "include",

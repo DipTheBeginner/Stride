@@ -1,5 +1,7 @@
 "use client";
 
+import type { ProjectPriority, ProjectStatus } from "./project-config";
+
 import {
   createContext,
   ReactNode,
@@ -15,10 +17,10 @@ export type Project = {
   name: string;
   workspaceId: string;
   description: string | null;
-  status: "PLANNED" | "ACTIVE" | "ON_HOLD" | "COMPLETED" | "CANCELLED";
+  status: ProjectStatus;
   icon: string;
   color: string;
-  priority: string;
+  priority: ProjectPriority;
   tags: string[];
   startDate: string;
   dueDate: string;

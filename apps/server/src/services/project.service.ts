@@ -116,3 +116,41 @@ export async function getWorkspaceProjectsBySlug(slug: string, userId: string) {
 
   return workspace.projects;
 }
+
+
+
+export async function getProjectById(projectId: string, userId: string) {
+
+  const project = await prisma.project.findFirst({
+    where: {
+      id: projectId,
+      workspace: {
+        members: {
+          some: {
+            userId
+          }
+        }
+      }
+    },
+    include: {
+      members: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              imageUrl:true,
+            }
+          }
+        }
+      }
+    }
+  })
+
+  if (!project) {
+    throw new Error("Project not found or unauthorized")
+  }
+
+  return project;
+  
+}

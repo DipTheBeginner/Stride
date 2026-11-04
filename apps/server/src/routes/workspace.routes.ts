@@ -261,71 +261,7 @@ router.patch(
   },
 );
 
-router.post(
-  "/:slug/addmember",
-  authMiddleware,
-  async (req: Request, res: Response) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized access",
-        });
-      }
 
-      const requestedByUserId = req.user.id;
-
-      const { slug } = req.params;
-
-      const { email } = req.body;
-
-      if (typeof slug !== "string" || !slug.trim()) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid workspace slug",
-        });
-      }
-
-      if (typeof email !== "string" || !email.trim()) {
-        return res.status(400).json({
-          success: false,
-          message: "Valid email is required",
-        });
-      }
-
-      const workspace = await prisma.workspace.findFirst({
-        where: {
-          slug: slug.toLowerCase(),
-        },
-      });
-
-      if (!workspace) {
-        return res.status(404).json({
-          success: false,
-          message: "Workspace not found",
-        });
-      }
-
-      const member = await createWorkspaceInvitation(
-        workspace.id,
-        email,
-        requestedByUserId,
-      );
-
-      return res.status(201).json({
-        success: true,
-        message: "Member added successfully",
-      });
-    } catch (error) {
-      console.error("Failed to add to workspace:", error);
-
-      return res.status(500).json({
-        success: false,
-        message: "Failed to add workspace member",
-      });
-    }
-  },
-);
 
 router.post(
   "/:slug/workspaceinvitation",

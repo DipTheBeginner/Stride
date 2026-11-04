@@ -2,8 +2,10 @@ import { Router, type Request, type Response } from "express";
 import authMiddleware from "../middleware/aut.middleware";
 import {
   createProject,
+  getProjectById,
   getWorkspaceProjectsBySlug,
 } from "../services/project.service";
+import { strict } from "assert";
 
 const router = Router();
 
@@ -31,7 +33,7 @@ router.post(
         priority,
         tags,
         dueDate,
-        startDate
+        startDate,
       } = req.body;
       const { workspaceId } = req.params;
 
@@ -96,7 +98,7 @@ router.post(
           message: "Valid start date and due date are required",
         });
       }
-      
+
       if (new Date(dueDate) < new Date(startDate)) {
         return res.status(400).json({
           message: "Due date cannot be earlier than start date",
@@ -106,8 +108,7 @@ router.post(
       if (
         !Array.isArray(tags) ||
         !tags.every(
-          (tag: unknown) =>
-            typeof tag === "string" && tag.trim() !== ""
+          (tag: unknown) => typeof tag === "string" && tag.trim() !== "",
         )
       ) {
         return res.status(400).json({
@@ -237,6 +238,56 @@ router.get(
       return res.status(500).json({
         success: false,
         message: "Failed to fetch projects",
+      });
+    }
+  },
+);
+
+router.get(
+  "/:projectId",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized user",
+        });
+      }
+
+      const userId = req.user.id;
+
+      const { projectId } = req.params;
+
+      if (typeof projectId !== "string" || projectId.trim() === "") {
+        return res.status(401).json({
+          success: false,
+          message: "Project id is required",
+        });
+      }
+
+      const project = await getProjectById(projectId, userId);
+
+      return res.status(200).json({
+        success: true,
+        project,
+      });
+    } catch (error) {
+      console.error("Failed to fetch project:", error);
+
+      if (
+        error instanceof Error &&
+        error.message === "Project not found or unauthorized"
+      ) {
+        return res.status(404).json({
+          success: false,
+          message: error.message,
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch project",
       });
     }
   },

@@ -22,6 +22,38 @@ export default function WorkspaceInvitations() {
 
   const [loading, setLoading] = useState(true);
 
+  async function handleAccept(invitationId: string) {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/workspaces/accept`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            invitationId,
+          }),
+        },
+      );
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to accept invitation");
+      }
+  
+      setInvitations((prev) =>
+        prev.filter((invitation) => invitation.id !== invitationId),
+      );
+  
+      console.log("Invitation accepted successfully");
+    } catch (error) {
+      console.error("Accept invitation failed:", error);
+    }
+  }
+
   useEffect(() => {
     async function fetchInvitations() {
       try {
@@ -77,11 +109,13 @@ export default function WorkspaceInvitations() {
         {invitations.map((invitation) => (
           <InvitationCard
             key={invitation.id}
+             id={invitation.id}
             name={invitation.workspace.name}
             logoUrl={invitation.workspace.logoUrl}
             inviterName={invitation.invitedBy.name}
             inviterImageUrl={invitation.invitedBy.imageUrl}
             createdAt={invitation.createdAt}
+            onAccept={handleAccept}
           />
         ))}
       </div>

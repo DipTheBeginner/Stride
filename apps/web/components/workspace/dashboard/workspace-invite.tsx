@@ -29,7 +29,7 @@ export default function WorkspaceInvite({
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/workspaces/${encodeURIComponent(slug)}/addmember`,
+        `${process.env.NEXT_PUBLIC_API_URL}/workspaces/${encodeURIComponent(slug)}/workspaceinvitation`,
         {
           method: "POST",
           credentials: "include",
@@ -45,7 +45,7 @@ export default function WorkspaceInvite({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to add member");
+        throw new Error(data.message || "Failed to create invitation");
       }
 
       onClose();
@@ -62,7 +62,7 @@ export default function WorkspaceInvite({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="flex w-full max-w-md flex-col gap-4 rounded-xl border border-[#343842] bg-[#17191F] p-6">
         <h2 className="text-xl font-semibold">
-          Add Workspace Member
+          Invite Workspace Member
         </h2>
 
         <label htmlFor="member-email" className="text-sm text-[#A1A1AA]">

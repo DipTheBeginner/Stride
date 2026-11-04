@@ -4,11 +4,14 @@ import formatInvitationDate from "@/lib/format-date";
 import Image from "next/image";
 
 interface InvitationCardProps {
+  id: string;
   name: string;
   logoUrl: string | null;
   inviterName: string;
   inviterImageUrl: string | null;
   createdAt: string;
+  onAccept:(id:string)=>Promise<void>
+  
 }
 
 export default function InvitationCard({
@@ -17,6 +20,8 @@ export default function InvitationCard({
   inviterName,
   inviterImageUrl,
   createdAt,
+  onAccept,
+  id,
 }: InvitationCardProps) {
   const logoSrc =
     logoUrl?.startsWith("https://") || logoUrl?.startsWith("/")
@@ -64,7 +69,7 @@ export default function InvitationCard({
         </div>
       </div>
       <div className="flex gap-4 items-center px-8">
-        <button className="bg-blue-600 rounded-lg px-8 py-3 ">Accept</button>
+        <button className="bg-blue-600 rounded-lg px-8 py-3 " onClick={() => void onAccept(id)}>Accept</button>
         <button className="bg-[#11141E] rounded-lg p-8 py-3 border-slate-500 border">
           Reject
         </button>
