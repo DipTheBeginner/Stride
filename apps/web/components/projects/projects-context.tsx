@@ -53,6 +53,7 @@ export function ProjectsProvider({ children }: projectsProviderProps) {
   const [projects, setProjects] = useState<Project[]>([]);
 
   const refreshProjects = useCallback(async () => {
+    if (!slug) return;
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/projects/workspace/${encodeURIComponent(slug)}/projects`,
@@ -75,7 +76,11 @@ export function ProjectsProvider({ children }: projectsProviderProps) {
   }, [slug]);
 
   useEffect(() => {
-    void refreshProjects();
+    async function loadProjects() {
+      await refreshProjects();
+    }
+  
+    void loadProjects();
   }, [refreshProjects]);
 
   return (
@@ -89,7 +94,7 @@ export function useProjects() {
   const context = useContext(ProjectsContext);
 
   if (!context) {
-    throw new Error("useProject must be used within ProjectsProvider");
+    throw new Error("useProjects must be used within ProjectsProvider");
   }
 
   return context;

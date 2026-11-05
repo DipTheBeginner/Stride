@@ -117,20 +117,17 @@ export async function getWorkspaceProjectsBySlug(slug: string, userId: string) {
   return workspace.projects;
 }
 
-
-
 export async function getProjectById(projectId: string, userId: string) {
-
   const project = await prisma.project.findFirst({
     where: {
       id: projectId,
       workspace: {
         members: {
           some: {
-            userId
-          }
-        }
-      }
+            userId,
+          },
+        },
+      },
     },
     include: {
       members: {
@@ -139,18 +136,56 @@ export async function getProjectById(projectId: string, userId: string) {
             select: {
               id: true,
               name: true,
-              imageUrl:true,
-            }
-          }
-        }
-      }
-    }
-  })
+              imageUrl: true,
+            },
+          },
+        },
+      },
+    },
+  });
 
   if (!project) {
-    throw new Error("Project not found or unauthorized")
+    throw new Error("Project not found or unauthorized");
   }
 
   return project;
-  
+}
+
+export async function getProjectMembers(projectId: string, userId: string) {
+  const membership = await prisma.projectMember.findUnique({
+    where: {
+      projectId_userId: {
+        projectId,
+        userId,
+      },
+    },
+  });
+
+  if (!membership) {
+    throw new Error("you are not member of the group");
+  }
+
+  if (!membership) {
+    throw new Error("Project not found or unauthorized");
+  }
+
+  const members = await prisma.projectMember.findMany({
+    where: {
+      projectId,
+    },
+    select: {
+      userId: true,
+      role: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          imageUrl: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  return members;
 }

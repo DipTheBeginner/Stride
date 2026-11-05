@@ -46,9 +46,24 @@ enum ProjectPriority {
 }
 
 enum IssueStatus {
-  TODO
+  TO_DO
   IN_PROGRESS
-  COMPLETED
+  REVIEW
+  DONE
+}
+
+enum IssueType {
+TASK
+BUG
+FEATURE
+IMPROVEMENT
+}
+
+enum IssuePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 }
 
 model User {
@@ -112,8 +127,10 @@ model Issue {
   title     String
   description String
   status    IssueStatus @default(TODO)
-  priority String
+  priority IssuePriority
   dueDate DateTime?
+  type  IssueType
+  labels String[]
 
   
   projectId String

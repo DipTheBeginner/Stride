@@ -3,6 +3,7 @@ import authMiddleware from "../middleware/aut.middleware";
 import {
   createProject,
   getProjectById,
+  getProjectMembers,
   getWorkspaceProjectsBySlug,
 } from "../services/project.service";
 import { strict } from "assert";
@@ -288,6 +289,61 @@ router.get(
       return res.status(500).json({
         success: false,
         message: "Failed to fetch project",
+      });
+    }
+  },
+);
+
+router.get(
+  "/:projectId/members",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "user not exist",
+        });
+      }
+
+      const userId = req.user.id;
+      const { projectId } = req.params;
+
+      if (typeof userId !== "string" || userId.trim() === "") {
+        return res.status(400).json({
+          success: false,
+          message: "userId is mandatory",
+        });
+      }
+
+      if (typeof projectId !== "string" || projectId.trim() === "") {
+        return res.status(400).json({
+          success: false,
+          message: "projectId is mandatory",
+        });
+      }
+
+      const members = await getProjectMembers(projectId, userId);
+
+      return res.status(200).json({
+        success: true,
+        members,
+      });
+    } catch (error) {
+      console.error("Failed to fetch project members:", error);
+
+      if (error instanceof Error) {
+        if (error.message === "Project not found or unauthorized") {
+          return res.status(404).json({
+            success: false,
+            message: error.message,
+          });
+        }
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch project members",
       });
     }
   },

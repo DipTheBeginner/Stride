@@ -12,6 +12,7 @@ import {
   priorityConfig,
 } from "../../../../../components/projects/project-config";
 import UserAvatar from "../../../../../components/ui/user-avatra";
+import CreateIssueModal from "../../../../../components/issue/create-issue-modal";
 
 export default function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -19,6 +20,7 @@ export default function ProjectDetailsPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isOpenModal, setIsOpenModal] = useState(false);
 
   const projectMembers = project?.members.slice(0, 5);
 
@@ -73,6 +75,8 @@ export default function ProjectDetailsPage() {
   const status = statusConfig[project.status];
   const priority = priorityConfig[project.priority];
 
+  
+
   return (
     <div className="p-6">
       <div className="flex items-start justify-between gap-6">
@@ -99,14 +103,34 @@ export default function ProjectDetailsPage() {
           </div>
         </div>
 
-        <div>
+        <div className="flex">
           {projectMembers?.map((members) => (
             <div key={members.userId}>
-              <UserAvatar imageUrl={members.user.imageUrl} />
+              <UserAvatar
+              name={members.user.name}
+                imageUrl={members.user.imageUrl} />
             </div>
           ))}
         </div>
       </div>
+
+      <div>
+        <div>
+          <h1>Issues</h1>
+          
+          <button
+
+            onClick={()=>setIsOpenModal(true)}
+
+          >New Issue</button>
+        </div>
+      </div>
+
+
+      {isOpenModal && (
+        <CreateIssueModal projectId={projectId}/>
+      )}
+      
     </div>
   );
 }
