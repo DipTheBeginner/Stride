@@ -1,5 +1,12 @@
-import { Check, ChevronDown, LucideClipboardList, UserRound } from "lucide-react";
-import { useState } from "react";
+import {
+  Calendar,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  LucideClipboardList,
+  UserRound,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import {
   issuePriority,
   IssueStatuses,
@@ -8,6 +15,8 @@ import {
 } from "./issue-constants";
 import Image from "next/image";
 import UserAvatar from "../ui/user-avatra";
+import PriorityIcon from "../projects/priority-icon";
+import DatePicker from "../ui/date-picker";
 
 type IssueAttributesPanelsProps = {
   member: ProjectMember[];
@@ -23,6 +32,12 @@ type IssueAttributesPanelsProps = {
 
   assignee: string;
   setAssignee: (type: string) => void;
+
+  dueDate: string;
+  setDueDate: (date: string) => void;
+
+  tags: string[];
+  setTags: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
 export default function IssueAttributesPanels({
@@ -35,46 +50,137 @@ export default function IssueAttributesPanels({
   setStatus,
   priority,
   setPriority,
+  dueDate,
+  setDueDate,
+  tags,
+  setTags,
 }: IssueAttributesPanelsProps) {
   const [typeDropdown, setTypeDropdown] = useState(false);
   const [statusDropdown, setStatusDropdown] = useState(false);
   const [priorityDropdown, setPriorityDropdown] = useState(false);
   const [assigneeDropdown, setAssigneeDropdown] = useState(false);
 
+  const [tagInput, setTagInput] = useState("");
+
+  const selectedType = issueType.find((item) => item.value === type);
+
+  const selectedStatus = IssueStatuses.find((item) => item.value === status);
+
+  const selectedPriority = issuePriority.find(
+    (item) => item.value === priority,
+  );
+
   const selectedAssignee = member.find((m) => m.userId === assignee);
+
+  const typeDropdownRef = useRef<HTMLDivElement>(null);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
+  const priorityDropdownRef = useRef<HTMLDivElement>(null);
+  const assigneeDropdownRef = useRef<HTMLDivElement>(null);
+
+
+  function addTag() {
+    const newTag = tagInput.trim();
+
+    if (!newTag) {
+      return;
+    }
+
+    if (tags.some((tag) => tag.toLowerCase() === newTag.toLowerCase())) {
+      return;
+    }
+
+    setTags((prev) => [...prev, newTag]);
+    setTagInput("");
+  }
+
+  function removeTag(tagToRemove: string) {
+
+    setTags((prev)=>prev.filter((tag)=>tag!==tagToRemove))
+    
+  }
+
+  useEffect(() => {
+    function handleOutsideClick(event: MouseEvent) {
+      const target = event.target as Node;
+
+      if (
+        statusDropdownRef.current &&
+        !statusDropdownRef.current.contains(target)
+      ) {
+        setStatusDropdown(false);
+      }
+      if (
+        priorityDropdownRef.current &&
+        !priorityDropdownRef.current.contains(target)
+      ) {
+        setPriorityDropdown(false);
+      }
+
+      if (
+        typeDropdownRef.current &&
+        !typeDropdownRef.current.contains(target)
+      ) {
+        setTypeDropdown(false);
+      }
+
+      if (
+        assigneeDropdownRef.current &&
+        !assigneeDropdownRef.current.contains(target)
+      ) {
+        setAssigneeDropdown(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  const today = new Date();
+
+  const minDate = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, "0"),
+    String(today.getDate()).padStart(2, "0"),
+  ].join("-");
 
   return (
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-3 gap-4 items-center justify-center">
         {/*Task type*/}
 
-        <div className="relative ">
+        <div className="relative flex flex-col gap-2" ref={typeDropdownRef}>
           <span>Type</span>
           <button
             className="flex justify-between rounded-lg p-3 w-full items-center  bg-[#1A1D23]"
             onClick={() => setTypeDropdown(!typeDropdown)}
           >
-            <div className="flex gap-1 items-center">
-              <LucideClipboardList />
-              <h1 className="capitalize">{type}</h1>
+            <div className="flex gap-3 items-center">
+              {selectedType && (
+                <selectedType.icon size={20} color={selectedType.color} />
+              )}
+              <span>{selectedType?.label}</span>
             </div>
             <div>
-              <ChevronDown />
+              <ChevronDown
+                size={20}
+                className={`transition-transform duration-100 ${typeDropdown ? "rotate-180" : ""}`}
+              />
             </div>
           </button>
 
           {typeDropdown && (
             <div className="absolute flex flex-col w-full top-full left-0 z-20 rounded-lg border border-white/10 bg-[#1A1E24]">
-              {issueType.map((type) => (
+              {issueType.map((item) => (
                 <button
-                  key={type.value}
+                  key={item.value}
                   onClick={() => {
-                    setType(type.value);
+                    setType(item.value);
                     setTypeDropdown(false);
                   }}
                   className="flex px-4 py-2 items-center text-left gap-3 hover:bg-[#252B33]"
                 >
-                  <span>{type.label}</span>
+                  <item.icon size={18} color={item.color} />
+                  <span>{item.label}</span>
                 </button>
               ))}
             </div>
@@ -82,33 +188,45 @@ export default function IssueAttributesPanels({
         </div>
         {/*Status*/}
 
-        <div className="relative">
+        <div className="relative gap-2 flex flex-col" ref={statusDropdownRef}>
+          <h1>Status</h1>
           <button
             className="flex justify-between rounded-lg p-3 w-full items-center  bg-[#1A1D23]"
             onClick={() => setStatusDropdown(!statusDropdown)}
           >
-            <div className="flex gap-1 items-center">
-              <div className="rounded-full h-2.5 w-2.5" />
-              <h1>{status}</h1>
+            <div className="flex gap-3 items-center">
+              <div
+                className="rounded-full h-2.5 w-2.5"
+                style={{ backgroundColor: selectedStatus?.color }}
+              />
+              <span>{selectedStatus?.label}</span>
             </div>
 
             <div>
-              <ChevronDown />
+              <ChevronDown
+                size={20}
+                className={`transition-transform duration-100 ${statusDropdown ? "rotate-180" : ""}`}
+              />
             </div>
           </button>
 
           {statusDropdown && (
             <div className="absolute flex flex-col w-full top-full left-0 z-20 rounded-lg border border-white/10 bg-[#1A1E24]">
-              {IssueStatuses.map((status) => (
+              {IssueStatuses.map((option) => (
                 <button
-                  key={status.value}
+                  key={option.value}
                   onClick={() => {
-                    setStatus(status.value);
+                    setStatus(option.value);
                     setStatusDropdown(false);
                   }}
-                  className="items-center text-left px-4 py-2 gap-3 hover:bg-[#252B33] w-full"
+                  className="items-center text-left px-4 py-2 gap-3 hover:bg-[#252B33] w-full flex"
                 >
-                  {status.label}
+                  <div
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: option.color }}
+                  />
+
+                  <span>{option.label}</span>
                 </button>
               ))}
             </div>
@@ -117,14 +235,15 @@ export default function IssueAttributesPanels({
 
         {/*Priority*/}
 
-        <div className="relative">
+        <div className="relative flex flex-col gap-3" ref={priorityDropdownRef}>
+          <h1>Priority</h1>
           <button
             className="flex justify-between rounded-lg p-3 w-full items-center  bg-[#1A1D23]"
             onClick={() => setPriorityDropdown(!priorityDropdown)}
           >
-            <div className="flex gap-1 items-center">
-              <div className="rounded-full h-2.5 w-2.5" />
-              <h1>Medium</h1>
+            <div className="flex gap-3 items-center">
+              <PriorityIcon value={priority} />
+              <span>{selectedPriority?.label}</span>
             </div>
 
             <div>
@@ -134,13 +253,18 @@ export default function IssueAttributesPanels({
 
           {priorityDropdown && (
             <div className="absolute flex flex-col w-full top-full left-0 z-20 rounded-lg border border-white/10 bg-[#1A1E24]">
-              {issuePriority.map((issue) => (
+              {issuePriority.map((option) => (
                 <button
-                  key={issue.value}
-                  
-                  className="items-center text-left px-4 py-2 gap-3 hover:bg-[#252B33] w-full"
+                  key={option.value}
+                  onClick={() => {
+                    setPriority(option.value);
+                    setPriorityDropdown(false);
+                  }}
+
+                  className=" flex items-center text-left px-4 py-2 gap-3 hover:bg-[#252B33] w-full"
                 >
-                  {issue.label}
+                  <PriorityIcon value={option.value} />
+                  <span>{option.label}</span>
                 </button>
               ))}
             </div>
@@ -151,9 +275,10 @@ export default function IssueAttributesPanels({
       {/*members*/}
 
       {/* Assignee */}
-      
+
       <div className="grid grid-cols-3 items-center gap-4">
-        <div className="relative">
+        <div className="relative flex flex-col gap-3" ref={assigneeDropdownRef}>
+          <h1>Assignee</h1>
           <button
             type="button"
             onClick={() => setAssigneeDropdown(!assigneeDropdown)}
@@ -171,18 +296,15 @@ export default function IssueAttributesPanels({
                   <UserRound size={14} />
                 </div>
               )}
-      
+
               <span className="truncate text-sm font-medium capitalize text-white">
                 {selectedAssignee?.user.name ?? "Unassigned"}
               </span>
             </div>
-      
-            <ChevronDown
-              size={16}
-              className="shrink-0 text-[#8A8F98]"
-            />
+
+            <ChevronDown size={16} className="shrink-0 text-[#8A8F98]" />
           </button>
-      
+
           {assigneeDropdown && (
             <div className="absolute top-full left-0 z-50 mt-2 max-h-64 w-72 overflow-y-auto rounded-xl border border-[#30343B] bg-[#1C1F26] p-2 shadow-xl">
               {/* Unassigned option */}
@@ -197,18 +319,16 @@ export default function IssueAttributesPanels({
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#30343B] text-[#8A8F98]">
                   <UserRound size={16} />
                 </div>
-      
+
                 <span className="flex-1 text-sm text-[#B5BAC4]">
                   Unassigned
                 </span>
-      
-                {!assignee && (
-                  <Check size={16} className="text-[#9B72F2]" />
-                )}
+
+                {!assignee && <Check size={16} className="text-[#9B72F2]" />}
               </button>
-      
+
               <div className="my-1 border-t border-white/10" />
-      
+
               {/* Project members */}
               {member.map((m) => (
                 <button
@@ -225,31 +345,27 @@ export default function IssueAttributesPanels({
                     imageUrl={m.user.imageUrl}
                     size={30}
                   />
-      
+
                   <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className="truncate text-sm font-medium capitalize text-white">
                       {m.user.name}
                     </span>
-      
+
                     {m.user.email && (
                       <span className="truncate text-xs text-[#8A8F98]">
                         {m.user.email}
                       </span>
                     )}
                   </div>
-      
+
                   {assignee === m.userId && (
                     <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#9B72F2]">
-                      <Check
-                        size={13}
-                        strokeWidth={3}
-                        className="text-white"
-                      />
+                      <Check size={13} strokeWidth={3} className="text-white" />
                     </div>
                   )}
                 </button>
               ))}
-      
+
               {member.length === 0 && (
                 <p className="px-3 py-4 text-center text-sm text-[#8A8F98]">
                   No project members found
@@ -257,6 +373,24 @@ export default function IssueAttributesPanels({
               )}
             </div>
           )}
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <span>Due Date</span>
+          <DatePicker
+            value={dueDate}
+            onChange={setDueDate}
+            placeholder="Set due date"
+            minDate={minDate}
+          />
+        </div>
+
+        <div>
+          <span>Issue Tags</span>
+          <div>
+            {tags.map((tag))}
+            
+          </div>
         </div>
       </div>
     </div>

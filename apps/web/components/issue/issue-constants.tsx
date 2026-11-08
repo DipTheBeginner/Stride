@@ -1,3 +1,5 @@
+import { Bug, ClipboardList, Sparkles, TrendingUp } from "lucide-react";
+
 export type ProjectMember = {
   userId: string;
   user: {
@@ -17,12 +19,11 @@ export const IssueStatuses = [
 ];
 
 export const issueType = [
-  { value: "TASK", label: "Task"},
-  { value: "FEATURE", label: "Feature"},
-  { value: "BUG", label: "Bug"},
-  { value: "IMPROVEMENT", label: "Improvement"},
-  
-]
+  { value: "TASK", label: "Task", icon: ClipboardList, color: "#94A3B8" },
+  { value: "FEATURE", label: "Feature", icon: Sparkles, color: "#A78BFA" },
+  { value: "BUG", label: "Bug", icon: Bug, color: "#EF4444" },
+  { value: "IMPROVEMENT", label: "Improvement", icon: TrendingUp, color: "#22C55E" },
+];
 
 export const issuePriority = [
   { value: "LOW", label: "Low" },

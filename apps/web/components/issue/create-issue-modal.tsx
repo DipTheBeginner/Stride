@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import IssueAttributesPanels from "./issue-attributes-panels";
 import { ProjectMember } from "./issue-constants";
 import { useProjects } from "../projects/projects-context";
+import { Calendar } from "lucide-react";
 
 type CreateIssueModalProps = {
   projectId: string;
@@ -10,17 +11,21 @@ type CreateIssueModalProps = {
 export default function CreateIssueModal({ projectId }: CreateIssueModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [taskType, setTaskType] = useState("");
-  const [status, setStatus] = useState("");
-  const [priority, setPriority] = useState("");
+  const [taskType, setTaskType] = useState("TASK");
+  const [status, setStatus] = useState("TO_DO");
+  const [priority, setPriority] = useState("MEDIUM");
   const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([]);
   const [labels, setLabels] = useState("");
   const [assignee, setAssignee] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
 
   useEffect(() => {
     if (!projectId) {
       return;
     }
+
+    
 
     async function fetchProjectMembers() {
       try {
@@ -77,7 +82,13 @@ export default function CreateIssueModal({ projectId }: CreateIssueModalProps) {
             setPriority={setPriority}
             assignee={assignee}
             setAssignee={setAssignee}
+            dueDate={dueDate}
+            setDueDate={setDueDate}
+            tags={tags}
+            setTags={setTags}
           />
+
+          
         </div>
       </div>
     </div>
