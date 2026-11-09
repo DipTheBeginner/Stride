@@ -5,6 +5,7 @@ import {
   ChevronUp,
   LucideClipboardList,
   UserRound,
+  X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -385,10 +386,28 @@ export default function IssueAttributesPanels({
           />
         </div>
 
-        <div>
+        <div className="flex flex-col gap-3">
           <span>Issue Tags</span>
-          <div>
-            {tags.map((tag))}
+          <div className="flex min-h-11 flex-wrap items-center gap-2 rounded-lg border border-white/10 bg-[#191E22] px-3 py-2">
+            {tags.map((tag) => (
+              <div key={tag} className="flex items-center gap-1.5  rounded-md bg-[#30334C] px-2 py-1 text-xs  text-[#C4B5FD]">
+                <span>{tag}</span>
+                <button className="cursor-pointer text-[#C4B5FD] transition-colors hover:text-white" onClick={()=>removeTag(tag)}>
+                  <X size={10}/>
+                </button>
+                
+              </div>
+            ))}
+
+            <input type="text" value={tagInput} onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addTag();
+              }
+              }} placeholder={tags.length === 0 ? "Add a tag..." : "Add more"}
+              className="minw-28 bg-transparent text-sm text-white outline-none placeholder:text-[#8A8F98]"
+            />
             
           </div>
         </div>
