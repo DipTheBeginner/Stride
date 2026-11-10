@@ -4,6 +4,8 @@ import {
   ChevronDown,
   ChevronUp,
   LucideClipboardList,
+  Plus,
+  Tags,
   UserRound,
   X,
 } from "lucide-react";
@@ -18,6 +20,8 @@ import Image from "next/image";
 import UserAvatar from "../ui/user-avatra";
 import PriorityIcon from "../projects/priority-icon";
 import DatePicker from "../ui/date-picker";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Span } from "next/dist/trace";
 
 type IssueAttributesPanelsProps = {
   member: ProjectMember[];
@@ -386,30 +390,67 @@ export default function IssueAttributesPanels({
           />
         </div>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 min-w-0">
           <span>Issue Tags</span>
-          <div className="flex min-h-11 flex-wrap items-center gap-2 rounded-lg border border-white/10 bg-[#191E22] px-3 py-2">
-            {tags.map((tag) => (
-              <div key={tag} className="flex items-center gap-1.5  rounded-md bg-[#30334C] px-2 py-1 text-xs  text-[#C4B5FD]">
-                <span>{tag}</span>
-                <button className="cursor-pointer text-[#C4B5FD] transition-colors hover:text-white" onClick={()=>removeTag(tag)}>
-                  <X size={10}/>
-                </button>
-                
-              </div>
-            ))}
 
-            <input type="text" value={tagInput} onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addTag();
-              }
-              }} placeholder={tags.length === 0 ? "Add a tag..." : "Add more"}
-              className="minw-28 bg-transparent text-sm text-white outline-none placeholder:text-[#8A8F98]"
-            />
-            
-          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button type="button"
+                className="flex h-11 w-full min-w-0 cursor-pointer items-center gap-2 rounded-lg border  border-white/10 bg-[#191E22] px-3 text-left hover:border-white/20">
+                {tags.length === 0 ? (
+                  <span >
+                    Add tags...
+                </span>
+                ) :
+                  <>
+                    <span>
+                      {tags[0]}
+                    </span>
+                    {tags.length > 1 && (
+                                 <span className="shrink-0 rounded-md bg-[#30334C] px-2 py-1 text-xs text-[#C4B5FD]">
+                                   +{tags.length - 1}
+                                 </span>
+                               )}
+                  </>
+                  
+                }
+                <Plus/>
+              </button>
+              
+            </PopoverTrigger>
+
+            <PopoverContent>
+              <div>
+                <Tags />
+                Manage Tags
+              </div>
+
+              <input type="text" value={tagInput} onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addTag()
+                  }
+                
+                }} />
+
+              {tags.length > 0 && (
+                <div>
+                  {tags.map((tag) => (
+                    <div key={tag}>
+                      <span>{tag}</span>
+                      <button>
+                        <X/>
+                      </button>
+                      
+                    </div>
+                  ))}
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+         
+          
         </div>
       </div>
     </div>
