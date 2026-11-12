@@ -7,6 +7,7 @@ import passport from "./config/auth.config";
 import authRouter from "./routes/auth.routes";
 import workspacerouter from "./routes/workspace.routes";
 import projectRouter from "./routes/project.routes";
+import issueRouter from "./routes/issue.routes";
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.get("/health", (_req, res) => {
 
 app.use("/workspaces", workspacerouter);
 app.use("/projects", projectRouter);
+app.use("/projects", issueRouter);
 
 app.get("/health/db", async (_req, res) => {
   try {

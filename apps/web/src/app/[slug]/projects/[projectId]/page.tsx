@@ -2,7 +2,13 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CalendarDays, Flag, Folder } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronDown,
+  Flag,
+  Folder,
+  UserRoundArrowLeft,
+} from "lucide-react";
 
 import type { Project } from "../../../../../components/projects/projects-context";
 import { getProjectById } from "@/services/project.services";
@@ -13,6 +19,9 @@ import {
 } from "../../../../../components/projects/project-config";
 import UserAvatar from "../../../../../components/ui/user-avatra";
 import CreateIssueModal from "../../../../../components/issue/create-issue-modal";
+import KanbanBoard from "../../../../../components/issue/kanbanboard";
+import { Issue } from "../../../../../components/issue/issue.types";
+import { getProjectIssue } from "@/services/issue.services";
 
 export default function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -22,7 +31,46 @@ export default function ProjectDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [isOpenModal, setIsOpenModal] = useState(false);
 
+  const [issue, setIssue] = useState<Issue[]>([]);
+  const [issuesLoading, setIssuesLoading] = useState(true);
+  const [issuesError, setIssuesError] = useState<string | null>(null);
+
   const projectMembers = project?.members.slice(0, 5);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadIssue() {
+      setIssuesLoading(true);
+      setIssuesError(null);
+      setIssue([]);
+
+      try {
+        const data = await getProjectIssue(projectId);
+
+        console.log("Fetched issues:", data);
+
+        if (!cancelled) {
+          setIssue(data);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setIssuesError("Failed to load issues");
+          console.error(error);
+        }
+      } finally {
+        if (!cancelled) {
+          setIssuesLoading(false);
+        }
+      }
+    }
+
+    void loadIssue();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,8 +123,6 @@ export default function ProjectDetailsPage() {
   const status = statusConfig[project.status];
   const priority = priorityConfig[project.priority];
 
-  
-
   return (
     <div className="p-6">
       <div className="flex items-start justify-between gap-6">
@@ -107,30 +153,45 @@ export default function ProjectDetailsPage() {
           {projectMembers?.map((members) => (
             <div key={members.userId}>
               <UserAvatar
-              name={members.user.name}
-                imageUrl={members.user.imageUrl} />
+                name={members.user.name}
+                imageUrl={members.user.imageUrl}
+              />
             </div>
           ))}
         </div>
       </div>
 
-      <div>
+      <div className="flex flex-col mt-6">
         <div>
           <h1>Issues</h1>
-          
-          <button
-
-            onClick={()=>setIsOpenModal(true)}
-
-          >New Issue</button>
         </div>
+        <div className="flex justify-between">
+          <div className="flex justify-between gap-3 items-center">
+            <UserRoundArrowLeft />
+            <span>Assignee</span>
+            <ChevronDown />
+          </div>
+
+          <button className="" onClick={() => setIsOpenModal(true)}>
+            New Issue
+          </button>
+        </div>
+
+        {issuesLoading ? (
+          <p>Loading issues...</p>
+        ) : issuesError ? (
+          <p>{issuesError}</p>
+        ) : (
+          <KanbanBoard issues={issue} />
+        )}
       </div>
 
-
       {isOpenModal && (
-        <CreateIssueModal projectId={projectId}/>
+        <CreateIssueModal
+          projectId={projectId}
+          onClose={() => setIsOpenModal(false)}
+        />
       )}
-      
     </div>
   );
 }

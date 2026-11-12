@@ -19,3 +19,9 @@ if (!connectionString) {
 const adapter = new PrismaPg({ connectionString });
 
 export const prisma = new PrismaClient({ adapter });
+
+export {
+  IssueStatus,
+  IssuePriority,
+  IssueType,
+} from "../generated/prisma/enums";

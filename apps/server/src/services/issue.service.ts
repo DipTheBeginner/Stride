@@ -1,23 +1,25 @@
-import { prisma } from "@stride/database";
+import { IssuePriority, IssueStatus, IssueType, prisma } from "@stride/database";
+
+
 
 export async function createIssue(
   title: string,
-  description: string,
-  priority: string,
-  status: "TODO" | "IN_PROGRESS" | "COMPLETED",
-  projectId: string,
-  assigneeId: string | null,
-
-  createdById: string | null,
-  dueDate: string | null,
+    description: string,
+    priority: IssuePriority,
+    status: IssueStatus,
+    projectId: string,
+    assigneeId: string | null,
+    createdById: string | null,
+    dueDate: string | null,
+    type: IssueType,
+    labels: string[],
 ) {
   if (!createdById) {
     throw new Error("User is not authenticated");
   }
 
-  if (!assigneeId) {
-    throw new Error("User is not authenticated");
-  }
+ 
+
 
   const project = await prisma.project.findUnique({
     where: { id: projectId },
@@ -30,6 +32,8 @@ export async function createIssue(
   if (!project) {
     throw new Error("Project not found");
   }
+
+ 
 
   const membership = await prisma.workspaceMember.findUnique({
     where: {
@@ -59,25 +63,34 @@ export async function createIssue(
     throw new Error("You are not a member of this project");
   }
 
-  const assigneeMembership = await prisma.projectMember.findUnique({
-    where: {
-      projectId_userId: {
-        projectId: projectId,
-        userId: assigneeId,
+  if (assigneeId) {
+    const assigneeMembership = await prisma.projectMember.findUnique({
+      where: {
+        projectId_userId: {
+          projectId: project.id,
+          userId: assigneeId,
+        },
       },
-    },
-  });
+    });
+  
+    if (!assigneeMembership) {
+      throw new Error("Assignee is not a member of this project");
+    }
+  }
 
   const issue = await prisma.issue.create({
     data: {
       title,
-      description,
-      projectId: project.id,
-      createdById,
-      dueDate: dueDate ? new Date(dueDate) : null,
-      assigneeId,
-      status,
-      priority,
+          description,
+          projectId: project.id,
+          createdById,
+          dueDate: dueDate ? new Date(dueDate) : null,
+          assigneeId,
+          status,
+          priority,
+          type,
+          labels,
+     
     },
   });
 
@@ -101,7 +114,7 @@ export async function getProjectIssue(projectId: string, userId: string) {
     where: {
       userId_workspaceId: {
         userId,
-        workspaceId: project?.workspaceId,
+        workspaceId: project.workspaceId,
       },
     },
   });
@@ -156,8 +169,10 @@ export async function getProjectIssue(projectId: string, userId: string) {
 type UpdateIssueData = {
   title?: string;
   description?: string;
-  priority?: string;
-  status?: "TODO" | "IN_PROGRESS" | "COMPLETED";
+  priority?: IssuePriority;
+  status?: IssueStatus;
+  type?: IssueType;
+  labels?: string[];
   assigneeId?: string | null;
   dueDate?: string | null;
 };
@@ -167,6 +182,7 @@ export async function updateIssue(
   projectId: string,
   issueId: string,
   data: UpdateIssueData,
+  
 ) {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
@@ -202,6 +218,21 @@ export async function updateIssue(
     },
   });
 
+  if (data.assigneeId) {
+    const assigneeMembership = await prisma.projectMember.findUnique({
+      where: {
+        projectId_userId: {
+          projectId: project.id,
+          userId: data.assigneeId,
+        },
+      },
+    });
+  
+    if (!assigneeMembership) {
+      throw new Error("Assignee is not a member of this project");
+    }
+  }
+
   const isWorkspaceAdmin =
     membership.role === "OWNER" || membership.role === "ADMIN";
 
@@ -215,16 +246,18 @@ export async function updateIssue(
     },
     data: {
       title: data.title,
-      description: data.description,
-      priority: data.priority,
-      status: data.status,
-      assigneeId: data.assigneeId,
-      dueDate:
-        data.dueDate === undefined
-          ? undefined
-          : data.dueDate === null
-            ? null
-            : new Date(data.dueDate),
+         description: data.description,
+         priority: data.priority,
+         status: data.status,
+         type: data.type,
+         labels: data.labels,
+         assigneeId: data.assigneeId,
+         dueDate:
+           data.dueDate === undefined
+             ? undefined
+             : data.dueDate === null
+               ? null
+               : new Date(data.dueDate),
     },
   });
 

@@ -20,7 +20,11 @@ import Image from "next/image";
 import UserAvatar from "../ui/user-avatra";
 import PriorityIcon from "../projects/priority-icon";
 import DatePicker from "../ui/date-picker";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Span } from "next/dist/trace";
 
 type IssueAttributesPanelsProps = {
@@ -82,7 +86,6 @@ export default function IssueAttributesPanels({
   const priorityDropdownRef = useRef<HTMLDivElement>(null);
   const assigneeDropdownRef = useRef<HTMLDivElement>(null);
 
-
   function addTag() {
     const newTag = tagInput.trim();
 
@@ -99,9 +102,7 @@ export default function IssueAttributesPanels({
   }
 
   function removeTag(tagToRemove: string) {
-
-    setTags((prev)=>prev.filter((tag)=>tag!==tagToRemove))
-    
+    setTags((prev) => prev.filter((tag) => tag !== tagToRemove));
   }
 
   useEffect(() => {
@@ -395,62 +396,71 @@ export default function IssueAttributesPanels({
 
           <Popover>
             <PopoverTrigger asChild>
-              <button type="button"
-                className="flex h-11 w-full min-w-0 cursor-pointer items-center gap-2 rounded-lg border  border-white/10 bg-[#191E22] px-3 text-left hover:border-white/20">
+              <button
+                type="button"
+                className="flex h-11 w-full min-w-0 cursor-pointer items-center gap-2 rounded-lg border  border-white/10 bg-[#191E22] px-3 text-left hover:border-white/20"
+              >
                 {tags.length === 0 ? (
-                  <span >
-                    Add tags...
-                </span>
-                ) :
+                  <span className="text-sm text-zinc-400">Add tags...</span>
+                ) : (
                   <>
-                    <span>
+                    <span className="rounded-md bg-[#30334C] px-2 py-1 text-xs text-[#C4B5FD] max-w-28 truncate">
                       {tags[0]}
                     </span>
                     {tags.length > 1 && (
-                                 <span className="shrink-0 rounded-md bg-[#30334C] px-2 py-1 text-xs text-[#C4B5FD]">
-                                   +{tags.length - 1}
-                                 </span>
-                               )}
+                      <span className="shrink-0 rounded-md bg-[#30334C] px-2 py-1 text-xs text-[#C4B5FD]">
+                        +{tags.length - 1}
+                      </span>
+                    )}
                   </>
-                  
-                }
-                <Plus/>
+                )}
+                <Plus size={16} className="ml-auto shrink-0 text-[#8A8F98]" />
               </button>
-              
             </PopoverTrigger>
 
-            <PopoverContent>
-              <div>
-                <Tags />
+            <PopoverContent
+              align="start"
+              className="z-60 w-72 rounded-xl border border-white/10 bg-[#1C1F26] p-3 text-white shadow-xl"
+            >
+              <div className="mb-3 flex items-center gap-2  text-sm font-medium">
+                <Tags size={16} className="text-[#A78BFA]" />
                 Manage Tags
               </div>
 
-              <input type="text" value={tagInput} onChange={(e) => setTagInput(e.target.value)}
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    addTag()
+                    addTag();
                   }
-                
-                }} />
+                }}
+                placeholder="Type and press Enter..."
+                className="rounded-lg border border-white/10 bg-[#15191E] px-3 text-sm text-white outline-none focus:border-[#9B72F2] h-10 w-full"
+              />
 
               {tags.length > 0 && (
-                <div>
+                <div className="mt-3 flex flex-wrap max-h-40  gap-2 overflow-y-auto ">
                   {tags.map((tag) => (
-                    <div key={tag}>
-                      <span>{tag}</span>
-                      <button>
-                        <X/>
+                    <div
+                      key={tag}
+                      className="flex max-w-full items-center gap-1.5 rounded-md bg-[#30334C] px-2 py-1 text-xs text-[#C4B5FD]"
+                    >
+                      <span className="truncate">{tag}</span>
+                      <button
+                        onClick={() => removeTag(tag)}
+                        className="shrink-0 cursor-pointer hover:text-white"
+                      >
+                        <X size={12} />
                       </button>
-                      
                     </div>
                   ))}
                 </div>
               )}
             </PopoverContent>
           </Popover>
-         
-          
         </div>
       </div>
     </div>

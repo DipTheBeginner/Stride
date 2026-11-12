@@ -1,6 +1,12 @@
 import { Router, type Request, type Response } from "express";
 import authMiddleware from "../middleware/aut.middleware";
-import { createIssue, deleteIssue, getProjectIssue, updateIssue } from "../services/issue.service";
+import {
+  createIssue,
+  deleteIssue,
+  getProjectIssue,
+  updateIssue,
+} from "../services/issue.service";
+import { IssuePriority, IssueStatus, IssueType } from "@stride/database";
 
 const router = Router();
 
@@ -19,8 +25,16 @@ router.post(
       const createdById = req.user.id;
       const { projectId } = req.params;
 
-      const { title, description, priority, status, assigneeId, dueDate } =
-        req.body;
+      const {
+        title,
+        description,
+        priority,
+        status,
+        type,
+        labels,
+        assigneeId,
+        dueDate,
+      } = req.body;
 
       // 1. Validate projectId
       if (typeof projectId !== "string" || !projectId.trim()) {
@@ -51,12 +65,9 @@ router.post(
       }
 
       // 4. Validate priority
-      const allowedPriorities = ["LOW", "MEDIUM", "HIGH", "URGENT"];
+      const allowedPriorities = Object.values(IssuePriority);
 
-      if (
-        priority !== undefined &&
-        (typeof priority !== "string" || !allowedPriorities.includes(priority))
-      ) {
+      if (priority !== undefined && !allowedPriorities.includes(priority)) {
         return res.status(400).json({
           success: false,
           message: "Invalid issue priority",
@@ -64,12 +75,9 @@ router.post(
       }
 
       // 5. Validate status
-      const allowedStatuses: string[] = ["TODO", "IN_PROGRESS", "COMPLETED"];
+      const allowedStatuses = Object.values(IssueStatus);
 
-      if (
-        status !== undefined &&
-        (typeof status !== "string" || !allowedStatuses.includes(status))
-      ) {
+      if (status !== undefined && !allowedStatuses.includes(status)) {
         return res.status(400).json({
           success: false,
           message: "Invalid issue status",
@@ -102,25 +110,55 @@ router.post(
         });
       }
 
-      // 8. Prepare validated values
+      if (type !== undefined && !Object.values(IssueType).includes(type)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid issue type",
+        });
+      }
+
+      if (
+        labels !== undefined &&
+        (!Array.isArray(labels) ||
+          !labels.every((label) => typeof label === "string"))
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Labels must be an array of strings",
+        });
+      }
+
       const cleanTitle = title.trim();
+
       const cleanDescription =
         typeof description === "string" ? description.trim() : "";
 
-      const cleanPriority = priority ?? "MEDIUM";
-      const cleanStatus = (status ?? "TODO") as
-        "TODO" | "IN_PROGRESS" | "COMPLETED";
+      const cleanPriority: IssuePriority = priority ?? IssuePriority.MEDIUM;
+
+      const cleanStatus: IssueStatus = status ?? IssueStatus.TO_DO;
+
+      const cleanType: IssueType = type ?? IssueType.TASK;
+
+      const cleanLabels: string[] = labels ?? [];
 
       const issue = await createIssue(
         cleanTitle,
         cleanDescription,
         cleanPriority,
-        status,
+        cleanStatus,
         projectId,
-        assigneeId,
+        assigneeId || null,
         createdById,
-        dueDate,
+        dueDate ?? null,
+        cleanType,
+        cleanLabels,
       );
+
+      return res.status(201).json({
+        success: true,
+        message: "Issue created successfully",
+        issue,
+      });
     } catch (error) {
       console.error("Failed to create issue:", error);
 
@@ -197,8 +235,6 @@ router.patch(
   authMiddleware,
   async (req: Request, res: Response) => {
     try {
-
-      
       if (!req.user) {
         return res.status(401).json({
           success: false,
@@ -212,10 +248,10 @@ router.patch(
       const { title, description, priority, status, assigneeId, dueDate } =
         req.body;
 
-
       if (
-        [title, description, priority, status, assigneeId, dueDate]
-          .every((value) => value === undefined)
+        [title, description, priority, status, assigneeId, dueDate].every(
+          (value) => value === undefined,
+        )
       ) {
         return res.status(400).json({
           success: false,
@@ -238,10 +274,7 @@ router.patch(
       }
 
       // 2. Validate title
-      if (
-        title !== undefined &&
-        (typeof title !== "string" || !title.trim())
-      ) {
+      if (title !== undefined && (typeof title !== "string" || !title.trim())) {
         return res.status(400).json({
           success: false,
           message: "Invalid issue title",
@@ -317,34 +350,23 @@ router.patch(
       const cleanDescription =
         typeof description === "string" ? description.trim() : "";
 
-     
+      const updatedIssue = await updateIssue(createdById, projectId, issueId, {
+        title: cleanTitle,
+        description: cleanDescription,
+        priority,
+        status,
+        assigneeId,
+        dueDate,
+      });
 
-
-      const updatedIssue = await updateIssue(
-        createdById,
-        projectId,
-        issueId,
-        {
-          title: cleanTitle,
-          description: cleanDescription,
-          priority,
-          status,
-          assigneeId,
-          dueDate,
-        },
-      );
-      
       return res.status(200).json({
         success: true,
         message: "Issue updated successfully",
         issue: updatedIssue,
       });
-
-
     } catch (error) {}
   },
 );
-
 
 router.delete(
   "/:projectId/issues/:issueId",
@@ -378,18 +400,13 @@ router.delete(
       }
 
       // Call service
-      const deletedIssue = await deleteIssue(
-        projectId,
-        issueId,
-        userId,
-      );
+      const deletedIssue = await deleteIssue(projectId, issueId, userId);
 
       return res.status(200).json({
         success: true,
         message: "Issue deleted successfully",
         issue: deletedIssue,
       });
-
     } catch (error) {
       console.error("Failed to delete issue:", error);
 
