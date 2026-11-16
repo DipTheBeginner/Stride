@@ -26,10 +26,10 @@ export const issueType = [
 ];
 
 export const issuePriority = [
-  { value: "LOW", label: "Low" },
-  { value: "MEDIUM", label: "Medium" },
-  { value: "HIGH", label: "High" },
-  {value:"URGENT" , label:"Urgent"}
-]
+  { value: "LOW", label: "Low", color: "#8A8F98" },
+  { value: "MEDIUM", label: "Medium", color: "#3B82F6" },
+  { value: "HIGH", label: "High", color: "#F59E0B" },
+  { value: "URGENT", label: "Urgent", color: "#EF4444" },
+];
 
 

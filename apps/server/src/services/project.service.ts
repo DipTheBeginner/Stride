@@ -1,4 +1,5 @@
 import { prisma } from "@stride/database";
+import { Prisma } from "../../../../packages/database/generated/prisma/client";
 
 export async function createProject(
   name: string,
@@ -56,24 +57,54 @@ export async function createProject(
     role: memberId === selectedLeadId ? ("LEAD" as const) : ("MEMBER" as const),
   }));
 
-  const project = await prisma.project.create({
-    data: {
-      name,
-      workspaceId,
-      description,
-      icon,
-      color,
-      leadId: selectedLeadId,
-      status,
-      priority,
-      tags,
-      startDate: new Date(startDate),
-      dueDate: new Date(dueDate),
-      members: {
-        create: projectMembers,
-      },
-    },
-  });
+  const baseKey =
+    name
+      .trim()
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .slice(0, 3)
+      .toUpperCase() || "PRJ";
+
+  let project;
+
+  for (let attempt = 1; attempt <= 20; attempt++) {
+    const projectKey = attempt === 1 ? baseKey : `${baseKey}${attempt}`;
+
+    try {
+       project = await prisma.project.create({
+        data: {
+          name,
+          key: baseKey,
+          workspaceId,
+          description,
+          icon,
+          color,
+          leadId: selectedLeadId,
+          status,
+          priority,
+          tags,
+          startDate: new Date(startDate),
+          dueDate: new Date(dueDate),
+          members: {
+            create: projectMembers,
+          },
+        },
+      });
+      break;
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  if (!project) {
+    throw new Error("Unable to generate a unique project key");
+  }
 
   return project;
 }

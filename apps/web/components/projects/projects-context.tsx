@@ -24,6 +24,7 @@ export type Project = {
   tags: string[];
   startDate: string;
   dueDate: string;
+  key: string;
 
   members: {
     userId: string;

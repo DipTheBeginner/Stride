@@ -1,25 +1,25 @@
-import { IssuePriority, IssueStatus, IssueType, prisma } from "@stride/database";
-
-
+import {
+  IssuePriority,
+  IssueStatus,
+  IssueType,
+  prisma,
+} from "@stride/database";
 
 export async function createIssue(
   title: string,
-    description: string,
-    priority: IssuePriority,
-    status: IssueStatus,
-    projectId: string,
-    assigneeId: string | null,
-    createdById: string | null,
-    dueDate: string | null,
-    type: IssueType,
-    labels: string[],
+  description: string,
+  priority: IssuePriority,
+  status: IssueStatus,
+  projectId: string,
+  assigneeId: string | null,
+  createdById: string | null,
+  dueDate: string | null,
+  type: IssueType,
+  labels: string[],
 ) {
   if (!createdById) {
     throw new Error("User is not authenticated");
   }
-
- 
-
 
   const project = await prisma.project.findUnique({
     where: { id: projectId },
@@ -32,8 +32,6 @@ export async function createIssue(
   if (!project) {
     throw new Error("Project not found");
   }
-
- 
 
   const membership = await prisma.workspaceMember.findUnique({
     where: {
@@ -72,29 +70,49 @@ export async function createIssue(
         },
       },
     });
-  
+
     if (!assigneeMembership) {
       throw new Error("Assignee is not a member of this project");
     }
   }
 
-  const issue = await prisma.issue.create({
-    data: {
-      title,
-          description,
-          projectId: project.id,
-          createdById,
-          dueDate: dueDate ? new Date(dueDate) : null,
-          assigneeId,
-          status,
-          priority,
-          type,
-          labels,
-     
-    },
+  const issue = await prisma.$transaction(async (tsx) => {
+    const updatedProject = await tsx.project.update({
+      where: {
+        id: projectId,
+      },
+      data: {
+        issueCounter: {
+          increment: 1,
+        },
+      },
+      select: {
+        issueCounter: true,
+      },
+    });
+
+    return tsx.issue.create({
+      data: {
+        title,
+        description,
+        projectId: project.id,
+        createdById,
+        dueDate: dueDate ? new Date(dueDate) : null,
+        assigneeId,
+        status,
+        priority,
+        type,
+        labels,
+        number:updatedProject.issueCounter
+      },
+    });
+  
+    
   });
 
   return issue;
+
+  
 }
 
 export async function getProjectIssue(projectId: string, userId: string) {
@@ -182,7 +200,6 @@ export async function updateIssue(
   projectId: string,
   issueId: string,
   data: UpdateIssueData,
-  
 ) {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
@@ -227,7 +244,7 @@ export async function updateIssue(
         },
       },
     });
-  
+
     if (!assigneeMembership) {
       throw new Error("Assignee is not a member of this project");
     }
@@ -246,18 +263,18 @@ export async function updateIssue(
     },
     data: {
       title: data.title,
-         description: data.description,
-         priority: data.priority,
-         status: data.status,
-         type: data.type,
-         labels: data.labels,
-         assigneeId: data.assigneeId,
-         dueDate:
-           data.dueDate === undefined
-             ? undefined
-             : data.dueDate === null
-               ? null
-               : new Date(data.dueDate),
+      description: data.description,
+      priority: data.priority,
+      status: data.status,
+      type: data.type,
+      labels: data.labels,
+      assigneeId: data.assigneeId,
+      dueDate:
+        data.dueDate === undefined
+          ? undefined
+          : data.dueDate === null
+            ? null
+            : new Date(data.dueDate),
     },
   });
 

@@ -5,7 +5,7 @@ export type Issue = {
   status: "TO_DO" | "IN_PROGRESS" | "REVIEW" | "DONE";
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   type: "TASK" | "BUG" | "FEATURE" | "IMPROVEMENT";
-  tags: string[];
+  labels: string[];
   number: number | null;
   projectId: string;
   assigneeId: string | null;

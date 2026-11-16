@@ -177,13 +177,17 @@ export default function ProjectDetailsPage() {
           </button>
         </div>
 
+        <div className="mt-10">
+          
+
         {issuesLoading ? (
           <p>Loading issues...</p>
         ) : issuesError ? (
           <p>{issuesError}</p>
         ) : (
-          <KanbanBoard issues={issue} />
+          <KanbanBoard issues={issue} projectKey={project.key ?? ""}/>
         )}
+        </div>
       </div>
 
       {isOpenModal && (
