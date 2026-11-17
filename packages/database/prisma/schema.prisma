@@ -46,6 +46,7 @@ enum ProjectPriority {
 }
 
 enum IssueStatus {
+BACKLOG
   TO_DO
   IN_PROGRESS
   REVIEW

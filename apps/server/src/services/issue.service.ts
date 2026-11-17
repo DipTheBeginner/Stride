@@ -260,6 +260,7 @@ export async function updateIssue(
   const updatedIssue = await prisma.issue.update({
     where: {
       id: issueId,
+      projectId:projectId,
     },
     data: {
       title: data.title,
@@ -336,3 +337,5 @@ export async function deleteIssue(
 
   return deleteIssue;
 }
+
+

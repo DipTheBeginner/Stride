@@ -12,6 +12,7 @@ export type ProjectMember = {
 
 
 export const IssueStatuses = [
+   { value: "BACKLOG", label: "Backlog", color: "#71717A" },
   { value: "TO_DO", label: "To Do", color: "#94A3B8" },
   { value: "IN_PROGRESS", label: "In Progress", color: "#3B82F6" },
   { value: "REVIEW", label: "In Review", color: "#A78BFA" },

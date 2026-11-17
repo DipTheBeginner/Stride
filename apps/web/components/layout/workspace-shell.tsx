@@ -84,7 +84,7 @@ export default function WorkspaceShell({
     <WorkspaceProvider workspace={workspace}>
       <ProjectsProvider>
         <div className="fixed inset-0 flex w-full overflow-hidden">
-          <aside className="w-[20%] shrink-0 border-r border-[#363943]">
+          <aside className="w-[15%] shrink-0 border-r border-[#363943]">
             <Sidebar />
           </aside>
 

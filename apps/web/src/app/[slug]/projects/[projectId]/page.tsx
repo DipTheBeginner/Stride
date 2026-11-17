@@ -37,6 +37,11 @@ export default function ProjectDetailsPage() {
 
   const projectMembers = project?.members.slice(0, 5);
 
+
+  const handleIssueCreated = (newIssue: Issue) => {
+    setIssue((prev)=>[...prev , newIssue])
+  }
+
   useEffect(() => {
     let cancelled = false;
 
@@ -124,7 +129,7 @@ export default function ProjectDetailsPage() {
   const priority = priorityConfig[project.priority];
 
   return (
-    <div className="p-6">
+    <div className="flex h-full min-h-0 flex-col p-6">
       <div className="flex items-start justify-between gap-6">
         <div className="flex min-w-0 gap-4">
           <div
@@ -161,7 +166,7 @@ export default function ProjectDetailsPage() {
         </div>
       </div>
 
-      <div className="flex flex-col mt-6">
+      <div className="mt-6 flex min-h-0 flex-1 flex-col">
         <div>
           <h1>Issues</h1>
         </div>
@@ -177,7 +182,7 @@ export default function ProjectDetailsPage() {
           </button>
         </div>
 
-        <div className="mt-10">
+        <div className="mt-10 min-h-0 flex-1">
           
 
         {issuesLoading ? (
@@ -192,6 +197,7 @@ export default function ProjectDetailsPage() {
 
       {isOpenModal && (
         <CreateIssueModal
+        onIssueCreated={handleIssueCreated}
           projectId={projectId}
           onClose={() => setIsOpenModal(false)}
         />

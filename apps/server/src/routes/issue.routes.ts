@@ -245,13 +245,28 @@ router.patch(
       const createdById = req.user.id;
       const { projectId, issueId } = req.params;
 
-      const { title, description, priority, status, assigneeId, dueDate } =
-        req.body;
+      const {
+        title,
+        description,
+        priority,
+        status,
+        type,
+        labels,
+        assigneeId,
+        dueDate,
+      } = req.body;
 
       if (
-        [title, description, priority, status, assigneeId, dueDate].every(
-          (value) => value === undefined,
-        )
+        [
+          title,
+          description,
+          priority,
+          status,
+          type,
+          labels,
+          assigneeId,
+          dueDate,
+        ].every((value) => value === undefined)
       ) {
         return res.status(400).json({
           success: false,
@@ -284,7 +299,6 @@ router.patch(
       // 3. Validate description
       if (
         description !== undefined &&
-        description !== null &&
         typeof description !== "string"
       ) {
         return res.status(400).json({
@@ -307,7 +321,13 @@ router.patch(
       }
 
       // 5. Validate status
-      const allowedStatuses: string[] = ["TODO", "IN_PROGRESS", "COMPLETED"];
+      const allowedStatuses: string[] = [
+        "BACKLOG",
+        "TO_DO",
+        "IN_PROGRESS",
+        "REVIEW",
+        "DONE",
+      ];
 
       if (
         status !== undefined &&
@@ -345,16 +365,43 @@ router.patch(
         });
       }
 
+      const allowedTypes = ["TASK", "BUG", "FEATURE", "IMPROVEMENT"];
+
+      if (
+        type !== undefined &&
+        (typeof type !== "string" || !allowedTypes.includes(type))
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid issue type",
+        });
+      }
+      
+      if (
+        labels !== undefined &&
+        (!Array.isArray(labels) ||
+          !labels.every((label) => typeof label === "string"))
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid issue labels",
+        });
+      }
+
       // 8. Prepare validated values
-      const cleanTitle = title.trim();
+      const cleanTitle =
+        typeof title === "string" ? title.trim() : undefined;
+      
       const cleanDescription =
-        typeof description === "string" ? description.trim() : "";
+        typeof description === "string" ? description.trim() : undefined;
 
       const updatedIssue = await updateIssue(createdById, projectId, issueId, {
         title: cleanTitle,
         description: cleanDescription,
         priority,
         status,
+        type,
+        labels,
         assigneeId,
         dueDate,
       });
@@ -364,7 +411,14 @@ router.patch(
         message: "Issue updated successfully",
         issue: updatedIssue,
       });
-    } catch (error) {}
+    } catch (error) {
+      console.error("Failed to update issue:", error);
+      
+        return res.status(500).json({
+          success: false,
+          message: "Failed to update issue",
+        });
+    }
   },
 );
 

@@ -22,7 +22,7 @@ export default function KanbanBoardIssueCard({
   );
 
   return (
-    <div className="p-3 border bg-[#1C1E28] rounded-md w-full">
+    <div className="p-3 border-2 border-[#343842]  bg-[#23262E] rounded-md w-full">
       <div className="flex gap-5">
         <Bookmark size={20} className="text-zinc-400" />
 

@@ -3,13 +3,15 @@ import IssueAttributesPanels from "./issue-attributes-panels";
 import { ProjectMember } from "./issue-constants";
 import { useProjects } from "../projects/projects-context";
 import { Calendar } from "lucide-react";
+import { Issue } from "./issue.types";
 
 type CreateIssueModalProps = {
   projectId: string;
-   onClose: () => void;
+  onClose: () => void;
+   onIssueCreated:(issue:Issue)=>void
 };
 
-export default function CreateIssueModal({ projectId,onClose }: CreateIssueModalProps) {
+export default function CreateIssueModal({ projectId,onClose,onIssueCreated }: CreateIssueModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [taskType, setTaskType] = useState("TASK");
@@ -47,6 +49,8 @@ export default function CreateIssueModal({ projectId,onClose }: CreateIssueModal
 
     fetchProjectMembers();
   }, [projectId]);
+
+  console.log("Status being sent:", status);
 
   async function submitIssue() {
 
@@ -90,6 +94,7 @@ export default function CreateIssueModal({ projectId,onClose }: CreateIssueModal
       }
   
       console.log("Issue created successfully:", data.issue);
+      onIssueCreated(data.issue);
       onClose();
     } catch (error) {
       console.error("Failed to create issue:", error);
