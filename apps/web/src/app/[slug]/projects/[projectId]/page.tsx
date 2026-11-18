@@ -42,6 +42,10 @@ export default function ProjectDetailsPage() {
     setIssue((prev)=>[...prev , newIssue])
   }
 
+  const handleIssueStatusChange = (issueId: string, newStatus: Issue["status"]) => {
+    setIssue((prev) => prev.map((item) => item.id === issueId ? {...item , status:newStatus}:item))
+  }
+
   useEffect(() => {
     let cancelled = false;
 
@@ -190,7 +194,7 @@ export default function ProjectDetailsPage() {
         ) : issuesError ? (
           <p>{issuesError}</p>
         ) : (
-          <KanbanBoard issues={issue} projectKey={project.key ?? ""}/>
+          <KanbanBoard issues={issue} projectKey={project.key ?? ""} onIssueStatusChange={handleIssueStatusChange}/>
         )}
         </div>
       </div>
