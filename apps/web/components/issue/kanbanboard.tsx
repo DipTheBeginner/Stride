@@ -14,6 +14,10 @@ import { createPortal } from "react-dom";
 type KanbanBoardProps = {
   issues: Issue[];
   projectKey: string;
+  onIssueStatusChange: (
+      issueId: string,
+      newStatus: Issue["status"]
+    ) => void;
 };
 
 const columns = [
@@ -66,11 +70,12 @@ function KanbanColumn({ column, issues, projectKey }: KanbanColumnProps) {
           </div>
         </div>
       </div>
+        
     </div>
   );
 }
 
-export default function KanbanBoard({ issues, projectKey }: KanbanBoardProps) {
+export default function KanbanBoard({ issues, projectKey,onIssueStatusChange }: KanbanBoardProps) {
   const [activeIssueId, setActiveIssueId] = useState<string | null>(null);
 
   const activeIssue = issues.find((issue) => issue.id === activeIssueId);
@@ -86,8 +91,18 @@ export default function KanbanBoard({ issues, projectKey }: KanbanBoardProps) {
 
     if (!over) return;
 
-    console.log("Dragged issue:", active.id);
-    console.log("Dropped into:", over.id);
+    const issueId = String(active.id);
+    const newStatus = String(over.id) as Issue["status"];
+
+    const draggedIssue = issues.find((issue) => issue.id === issueId);
+
+    if (!draggedIssue) return;
+
+    if (draggedIssue.status === newStatus) return;
+
+    onIssueStatusChange(issueId, newStatus);
+
+    
   }
 
   return (
@@ -125,5 +140,7 @@ export default function KanbanBoard({ issues, projectKey }: KanbanBoardProps) {
                 document.body,
               )}
     </DndContext>
+
+    
   );
 }
