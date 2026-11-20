@@ -4,7 +4,7 @@
 
 export default function ProjectOverviewPage() {
 
-  const [project]
+  
 
 
 

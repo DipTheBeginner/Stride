@@ -41,7 +41,7 @@ type ProjectsContextValue = {
   projects: Project[];
   refreshProjects: () => Promise<void>;
 };
-
+  
 const ProjectsContext = createContext<ProjectsContextValue | null>(null);
 
 type projectsProviderProps = {
