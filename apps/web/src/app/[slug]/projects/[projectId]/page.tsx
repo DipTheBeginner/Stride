@@ -1,125 +1,72 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import {
-  CalendarDays,
-  ChevronDown,
-  Flag,
-  Folder,
-  UserRoundArrowLeft,
-} from "lucide-react";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ChevronDown, Folder, UserRoundArrowLeft } from "lucide-react";
 
-import type { Project } from "../../../../../components/projects/projects-context";
-import { getProjectById } from "@/services/project.services";
 import { projectIcons } from "../../../../../components/projects/project-icons";
-import {
-  statusConfig,
-  priorityConfig,
-} from "../../../../../components/projects/project-config";
+import { statusConfig } from "../../../../../components/projects/project-config";
+
 import UserAvatar from "../../../../../components/ui/user-avatra";
 import CreateIssueModal from "../../../../../components/issue/create-issue-modal";
 import KanbanBoard from "../../../../../components/issue/kanbanboard";
-import { Issue } from "../../../../../components/issue/issue.types";
-import { getProjectIssue } from "@/services/issue.services";
+
+import type { Issue } from "../../../../../components/issue/issue.types";
+
+import { useProject } from "@/hooks/use-project";
+import { useIssues } from "@/hooks/use-hooks";
+import { useUpdateIssueStatus } from "@/hooks/use-update-issue-status";
 
 export default function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>();
 
-  const [project, setProject] = useState<Project | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
   const [isOpenModal, setIsOpenModal] = useState(false);
 
-  const [issue, setIssue] = useState<Issue[]>([]);
-  const [issuesLoading, setIssuesLoading] = useState(true);
-  const [issuesError, setIssuesError] = useState<string | null>(null);
+  // Fetch project using TanStack Query
+  const { data: project, isPending, isError, error } = useProject(projectId);
+
+  const { mutate: updateStatus } = useUpdateIssueStatus(projectId);
+
+  // Fetch issues using TanStack Query
+  const {
+    data: issues = [],
+    isPending: issuesLoading,
+    isError: hasIssueError,
+    error: issueError,
+  } = useIssues(projectId);
+
+
 
   const projectMembers = project?.members.slice(0, 5);
 
-
+  // Update issues cache after creating a new issue
   const handleIssueCreated = (newIssue: Issue) => {
-    setIssue((prev)=>[...prev , newIssue])
-  }
+    queryClient.setQueryData<Issue[]>(["issues", projectId], (old = []) => [
+      ...old,
+      newIssue,
+    ]);
+  };
 
-  const handleIssueStatusChange = (issueId: string, newStatus: Issue["status"]) => {
-    setIssue((prev) => prev.map((item) => item.id === issueId ? {...item , status:newStatus}:item))
-  }
+  //update issue on status change
+  const handleIssueStatusChange = (
+    issueId: string,
+    newStatus: Issue["status"],
+  ) => {
+    updateStatus({
+      issueId,
+      status:newStatus,
+    })
+  };
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadIssue() {
-      setIssuesLoading(true);
-      setIssuesError(null);
-      setIssue([]);
-
-      try {
-        const data = await getProjectIssue(projectId);
-
-        console.log("Fetched issues:", data);
-
-        if (!cancelled) {
-          setIssue(data);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setIssuesError("Failed to load issues");
-          console.error(error);
-        }
-      } finally {
-        if (!cancelled) {
-          setIssuesLoading(false);
-        }
-      }
-    }
-
-    void loadIssue();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [projectId]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadProject() {
-      setLoading(true);
-      setError(null);
-      setProject(null);
-
-      try {
-        const data = await getProjectById(projectId);
-
-        if (!cancelled) {
-          setProject(data);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setError("Failed to load project");
-          console.error(error);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void loadProject();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [projectId]);
-
-  if (loading) {
+  if (isPending) {
     return <div className="p-6">Loading project...</div>;
   }
 
-  if (error) {
-    return <div className="p-6 text-red-400">{error}</div>;
+  if (isError) {
+    return <div className="p-6 text-red-400">{error.message}</div>;
   }
 
   if (!project) {
@@ -130,7 +77,6 @@ export default function ProjectDetailsPage() {
     projectIcons[project.icon as keyof typeof projectIcons] ?? Folder;
 
   const status = statusConfig[project.status];
-  const priority = priorityConfig[project.priority];
 
   return (
     <div className="flex h-full min-h-0 flex-col p-6">
@@ -138,7 +84,9 @@ export default function ProjectDetailsPage() {
         <div className="flex min-w-0 gap-4">
           <div
             className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl"
-            style={{ backgroundColor: `${project.color}20` }}
+            style={{
+              backgroundColor: `${project.color}20`,
+            }}
           >
             <Icon size={36} style={{ color: project.color }} />
           </div>
@@ -148,22 +96,24 @@ export default function ProjectDetailsPage() {
               <h1 className="text-2xl font-semibold capitalize">
                 {project.name}
               </h1>
+
               <div
-                className={`flex rounded-full px-6 py-1 text-sm items-center justify-center    ${status.textColor} ${status.bgColor}`}
+                className={`flex items-center justify-center rounded-full px-6 py-1 text-sm ${status.textColor} ${status.bgColor}`}
               >
                 {status.label}
               </div>
             </div>
+
             <p className="text-md text-zinc-400">{project.description}</p>
           </div>
         </div>
 
         <div className="flex">
-          {projectMembers?.map((members) => (
-            <div key={members.userId}>
+          {projectMembers?.map((member) => (
+            <div key={member.userId}>
               <UserAvatar
-                name={members.user.name}
-                imageUrl={members.user.imageUrl}
+                name={member.user.name}
+                imageUrl={member.user.imageUrl}
               />
             </div>
           ))}
@@ -174,34 +124,35 @@ export default function ProjectDetailsPage() {
         <div>
           <h1>Issues</h1>
         </div>
+
         <div className="flex justify-between">
-          <div className="flex justify-between gap-3 items-center">
+          <div className="flex items-center justify-between gap-3">
             <UserRoundArrowLeft />
             <span>Assignee</span>
             <ChevronDown />
           </div>
 
-          <button className="" onClick={() => setIsOpenModal(true)}>
-            New Issue
-          </button>
+          <button onClick={() => setIsOpenModal(true)}>New Issue</button>
         </div>
 
         <div className="mt-10 min-h-0 flex-1">
-          
-
-        {issuesLoading ? (
-          <p>Loading issues...</p>
-        ) : issuesError ? (
-          <p>{issuesError}</p>
-        ) : (
-          <KanbanBoard issues={issue} projectKey={project.key ?? ""} onIssueStatusChange={handleIssueStatusChange}/>
-        )}
+          {issuesLoading ? (
+            <p>Loading issues...</p>
+          ) : hasIssueError ? (
+            <p className="text-red-400">{issueError.message}</p>
+          ) : (
+            <KanbanBoard
+              issues={issues}
+              projectKey={project.key ?? ""}
+              onIssueStatusChange={handleIssueStatusChange}
+            />
+          )}
         </div>
       </div>
 
       {isOpenModal && (
         <CreateIssueModal
-        onIssueCreated={handleIssueCreated}
+          onIssueCreated={handleIssueCreated}
           projectId={projectId}
           onClose={() => setIsOpenModal(false)}
         />

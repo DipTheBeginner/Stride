@@ -86,6 +86,10 @@ export default function KanbanBoard({ issues, projectKey,onIssueStatusChange }: 
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
+    console.log("Drop result:", {
+      active: active.id,
+      over: over?.id,
+    });
 
     setActiveIssueId(null);
 
