@@ -15,7 +15,7 @@ import KanbanBoard from "../../../../../components/issue/kanbanboard";
 import type { Issue } from "../../../../../components/issue/issue.types";
 
 import { useProject } from "@/hooks/use-project";
-import { useIssues } from "@/hooks/use-hooks";
+import { useIssues } from "@/hooks/use-issues-hooks";
 import { useUpdateIssueStatus } from "@/hooks/use-update-issue-status";
 
 export default function ProjectDetailsPage() {
@@ -152,7 +152,7 @@ export default function ProjectDetailsPage() {
 
       {isOpenModal && (
         <CreateIssueModal
-          onIssueCreated={handleIssueCreated}
+          
           projectId={projectId}
           onClose={() => setIsOpenModal(false)}
         />

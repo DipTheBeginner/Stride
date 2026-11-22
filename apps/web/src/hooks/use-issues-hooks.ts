@@ -1,5 +1,4 @@
 import { getProjectIssue } from "@/services/issue.services";
-import { getProjectById } from "@/services/project.services";
 import { useQuery } from "@tanstack/react-query";
 
 

@@ -4,14 +4,19 @@ import { ProjectMember } from "./issue-constants";
 import { useProjects } from "../projects/projects-context";
 import { Calendar } from "lucide-react";
 import { Issue } from "./issue.types";
+import { useCreateIssue } from "@/hooks/use-create-issue";
 
 type CreateIssueModalProps = {
   projectId: string;
   onClose: () => void;
-   onIssueCreated:(issue:Issue)=>void
+  
 };
 
-export default function CreateIssueModal({ projectId,onClose,onIssueCreated }: CreateIssueModalProps) {
+export default function CreateIssueModal({
+  projectId,
+  onClose,
+  
+}: CreateIssueModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [taskType, setTaskType] = useState("TASK");
@@ -22,7 +27,8 @@ export default function CreateIssueModal({ projectId,onClose,onIssueCreated }: C
   const [dueDate, setDueDate] = useState("");
   const [tags, setTags] = useState<string[]>([]);
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { mutateAsync: createNewIssue, isPending: isSubmitting } =
+    useCreateIssue(projectId);
 
   useEffect(() => {
     if (!projectId) {
@@ -53,53 +59,28 @@ export default function CreateIssueModal({ projectId,onClose,onIssueCreated }: C
   console.log("Status being sent:", status);
 
   async function submitIssue() {
-
     if (isSubmitting) return;
-    
-   
-    
+
     if (!title.trim()) {
       alert("Issue title is required");
       return;
     }
 
-      setIsSubmitting(true);
-  
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/projects/${encodeURIComponent(projectId)}/issue`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            title: title.trim(),
-            description: description.trim(),
-            type: taskType,
-            status,
-            priority,
-            assigneeId: assignee || null,
-            dueDate: dueDate || null,
-            labels: tags,
-          }),
-        },
-      );
-  
-      const data = await response.json();
-  
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to create issue");
-      }
-  
-      console.log("Issue created successfully:", data.issue);
-      onIssueCreated(data.issue);
+      await createNewIssue({
+        title: title.trim(),
+        description: description.trim(),
+        type: taskType,
+        status: status as Issue["status"],
+        priority,
+        assigneeId: assignee || null,
+        dueDate: dueDate || null,
+        labels: tags,
+      });
+
       onClose();
     } catch (error) {
       console.error("Failed to create issue:", error);
-    }finally {
-      setIsSubmitting(false);
     }
   }
 
@@ -154,7 +135,12 @@ export default function CreateIssueModal({ projectId,onClose,onIssueCreated }: C
           <div className="h-0.5 w-full bg-slate-800" />
 
           <div className="flex justify-end gap-6">
-            <span className="px-10 py-3 bg-[#121A21] rounded-md cursor-pointer" onClick={onClose}>Cancel</span>
+            <span
+              className="px-10 py-3 bg-[#121A21] rounded-md cursor-pointer"
+              onClick={onClose}
+            >
+              Cancel
+            </span>
             <button
               type="button"
               onClick={submitIssue}
