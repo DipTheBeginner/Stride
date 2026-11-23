@@ -38,8 +38,6 @@ export default function ProjectDetailsPage() {
     error: issueError,
   } = useIssues(projectId);
 
-
-
   const projectMembers = project?.members.slice(0, 5);
 
   // Update issues cache after creating a new issue
@@ -57,8 +55,8 @@ export default function ProjectDetailsPage() {
   ) => {
     updateStatus({
       issueId,
-      status:newStatus,
-    })
+      status: newStatus,
+    });
   };
 
   if (isPending) {
@@ -80,45 +78,7 @@ export default function ProjectDetailsPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col p-6">
-      <div className="flex items-start justify-between gap-6">
-        <div className="flex min-w-0 gap-4">
-          <div
-            className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl"
-            style={{
-              backgroundColor: `${project.color}20`,
-            }}
-          >
-            <Icon size={36} style={{ color: project.color }} />
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-4 capitalize">
-              <h1 className="text-2xl font-semibold capitalize">
-                {project.name}
-              </h1>
-
-              <div
-                className={`flex items-center justify-center rounded-full px-6 py-1 text-sm ${status.textColor} ${status.bgColor}`}
-              >
-                {status.label}
-              </div>
-            </div>
-
-            <p className="text-md text-zinc-400">{project.description}</p>
-          </div>
-        </div>
-
-        <div className="flex">
-          {projectMembers?.map((member) => (
-            <div key={member.userId}>
-              <UserAvatar
-                name={member.user.name}
-                imageUrl={member.user.imageUrl}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+      
 
       <div className="mt-6 flex min-h-0 flex-1 flex-col">
         <div>
@@ -152,7 +112,6 @@ export default function ProjectDetailsPage() {
 
       {isOpenModal && (
         <CreateIssueModal
-          
           projectId={projectId}
           onClose={() => setIsOpenModal(false)}
         />

@@ -1,7 +1,9 @@
 import { Router, type Request, type Response } from "express";
 import authMiddleware from "../middleware/aut.middleware";
 import {
+  addProjectMembers,
   createProject,
+  getAvilableProjectMembers,
   getProjectById,
   getProjectMembers,
   getWorkspaceProjectsBySlug,
@@ -344,6 +346,136 @@ router.get(
       return res.status(500).json({
         success: false,
         message: "Failed to fetch project members",
+      });
+    }
+  },
+);
+
+router.get(
+  "/:projectId/avilable-members",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "user not exist",
+        });
+      }
+
+      const { projectId } = req.params;
+      const userId = req.user.id;
+
+      if (typeof projectId !== "string" || projectId.trim() === "") {
+        return res.status(400).json({
+          success: false,
+          message: "projectId is mandatory",
+        });
+      }
+
+      const availableMembers = await getAvilableProjectMembers(
+        projectId,
+        userId,
+      );
+
+      return res.status(200).json({
+        success: true,
+        availableMembers
+      });
+    } catch (error) {
+      console.error("Error fetching avilable project members", error);
+      return res.status(500).json({
+        success: false,
+        message:"Failed to fetch avilable project member"
+      })
+    }
+  },
+);
+
+
+
+router.post(
+  "/:projectId/members",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "User not authenticated",
+        });
+      }
+
+      const { projectId } = req.params;
+      const userId = req.user.id;
+      const { memberIds } = req.body;
+
+      if (typeof projectId !== "string" || !projectId.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "projectId is mandatory",
+        });
+      }
+
+      if (
+        !Array.isArray(memberIds) ||
+        memberIds.length === 0 ||
+        !memberIds.every(
+          (id: unknown) => typeof id === "string" && id.trim() !== "",
+        )
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "memberIds must be a non-empty array of user IDs",
+        });
+      }
+
+      const members = await addProjectMembers(
+        projectId,
+        userId,
+        memberIds,
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "Project members added successfully",
+        members,
+      });
+    } catch (error) {
+      console.error("Error adding project members:", error);
+
+      if (error instanceof Error) {
+        if (error.message === "Project not found or unauthorized") {
+          return res.status(404).json({
+            success: false,
+            message: error.message,
+          });
+        }
+
+        if (
+          error.message ===
+          "You don't have permission to add project members"
+        ) {
+          return res.status(403).json({
+            success: false,
+            message: error.message,
+          });
+        }
+
+        if (
+          error.message === "One or more users are not workspace members" ||
+          error.message === "Select at least one member"
+        ) {
+          return res.status(400).json({
+            success: false,
+            message: error.message,
+          });
+        }
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: "Failed to add project members",
       });
     }
   },

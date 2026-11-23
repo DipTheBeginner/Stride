@@ -73,7 +73,7 @@ export async function createProject(
        project = await prisma.project.create({
         data: {
           name,
-          key: baseKey,
+          key: projectKey,
           workspaceId,
           description,
           icon,
@@ -219,4 +219,157 @@ export async function getProjectMembers(projectId: string, userId: string) {
   });
 
   return members;
+}
+
+
+export async function getAvilableProjectMembers(projectId: string, userId: string) {
+  const project = await prisma.project.findFirst({
+    where: {
+      id: projectId,
+      workspace: {
+        members: {
+          some:{userId}
+        }
+      }
+    },
+    select: {
+      workspaceId: true,
+      members: {
+        select: {
+          userId:true
+        }
+      }
+    }
+  })
+
+  if (!project) {
+      throw new Error("Project not found or unauthorized");
+    }
+  
+    const existingMemberIds = project.members.map(
+      (member) => member.userId,
+    );
+
+  const avilableMembers = await prisma.workspaceMember.findMany({
+    where: {
+      workspaceId: project.workspaceId,
+      userId: {
+        notIn:existingMemberIds
+      }
+    },
+
+    select: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          imageUrl:true
+          
+        }
+      }
+    }
+  })
+
+  return avilableMembers.map((member)=>member.user)
+
+  
+}
+
+
+export async function addProjectMembers(
+  projectId: string,
+  userId: string,
+  memberIds: string[],
+) {
+  const project = await prisma.project.findFirst({
+    where: {
+      id: projectId,
+      workspace: {
+        members: {
+          some: { userId },
+        },
+      },
+    },
+    select: {
+      workspaceId: true,
+      members: {
+        where: { userId },
+        select: { role: true },
+      },
+      workspace: {
+        select: {
+          members: {
+            where: { userId },
+            select: { role: true },
+          },
+        },
+      },
+    },
+  });
+
+  if (!project) {
+    throw new Error("Project not found or unauthorized");
+  }
+
+  const projectRole = project.members[0]?.role;
+  const workspaceRole = project.workspace.members[0]?.role;
+
+  const canAddMembers =
+    projectRole === "LEAD" ||
+    workspaceRole === "OWNER" ||
+    workspaceRole === "ADMIN";
+
+  if (!canAddMembers) {
+    throw new Error("You don't have permission to add project members");
+  }
+
+  const uniqueMemberIds = [...new Set(memberIds)];
+
+  if (uniqueMemberIds.length === 0) {
+    throw new Error("Select at least one member");
+  }
+
+  const workspaceMembers = await prisma.workspaceMember.findMany({
+    where: {
+      workspaceId: project.workspaceId,
+      userId: {
+        in: uniqueMemberIds,
+      },
+    },
+    select: {
+      userId: true,
+    },
+  });
+
+  if (workspaceMembers.length !== uniqueMemberIds.length) {
+    throw new Error("One or more users are not workspace members");
+  }
+
+  await prisma.projectMember.createMany({
+    data: uniqueMemberIds.map((memberId) => ({
+      projectId,
+      userId: memberId,
+      role: "MEMBER" as const,
+    })),
+    skipDuplicates: true,
+  });
+
+  return prisma.projectMember.findMany({
+    where: {
+      projectId,
+    },
+    select: {
+      userId: true,
+      role: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          imageUrl: true,
+        },
+      },
+    },
+  });
 }
