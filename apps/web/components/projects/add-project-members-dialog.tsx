@@ -4,13 +4,21 @@
 
 type AddProjectMembersDialogProps = {
   projectId: string,
-  open: boolean,
+  
   onClose : ()=>void
   
 }
 
 
-export default function AddProjectMembersDialog() {
+export default function AddProjectMembersDialog({ projectId, onClose }: AddProjectMembersDialogProps) {
+  
+
+
+  return (
+    <div>
+      dsd
+    </div>
+  )
 
   
   

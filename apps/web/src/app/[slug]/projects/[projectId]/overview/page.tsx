@@ -19,12 +19,16 @@ import { statusConfig } from "../../../../../../components/projects/project-conf
 import IssueStatCard from "../../../../../../components/issue/issue-stat-card";
 import UserAvatar from "../../../../../../components/ui/user-avatra";
 import formatRelativeTime from "@/lib/format-date";
+import AddProjectMembersDialog from "../../../../../../components/projects/add-project-members-dialog";
+import { useState } from "react";
 
 export default function ProjectOverviewPage() {
   const { projectId } = useParams<{ projectId: string }>();
 
   const { data: project, isPending: projectLoading } = useProject(projectId);
   const { data: issues = [], isPending: issuesLoading } = useIssues(projectId);
+
+  const [addMembersOpen, setAddMembersOpen] = useState(false);
 
   if (projectLoading || issuesLoading) {
     return <div>Loading overview...</div>;
@@ -216,7 +220,7 @@ export default function ProjectOverviewPage() {
               {/* Header */}
               <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-5 py-4">
                 <h2 className="text-sm font-semibold">Recent Issues</h2>
-          
+
                 <button
                   type="button"
                   className="text-xs font-medium text-blue-400 hover:text-blue-300"
@@ -224,7 +228,7 @@ export default function ProjectOverviewPage() {
                   View all
                 </button>
               </div>
-          
+
               {/* Issue List */}
               <div className="min-h-0 flex-1 overflow-y-auto">
                 {recentIssues.length === 0 ? (
@@ -248,7 +252,7 @@ export default function ProjectOverviewPage() {
                                   : "bg-zinc-500"
                           }`}
                         />
-          
+
                         <p
                           className="truncate text-sm font-medium capitalize"
                           title={issue.title}
@@ -256,12 +260,12 @@ export default function ProjectOverviewPage() {
                           {issue.title}
                         </p>
                       </div>
-          
+
                       {/* Issue Type */}
                       <span className="justify-self-start rounded-lg border border-white/10 px-2.5 py-1 text-xs capitalize text-zinc-400">
                         {issue.type.toLowerCase()}
                       </span>
-          
+
                       {/* Issue Priority */}
                       <span className="justify-self-start rounded-lg border border-white/10 px-2.5 py-1 text-xs capitalize text-zinc-400">
                         {issue.priority.toLowerCase()}
@@ -274,30 +278,21 @@ export default function ProjectOverviewPage() {
                         />
                       </div>
 
-                      <span
-                        className="text-right text-xs tabular-nums text-zinc-500"
-                      >
+                      <span className="text-right text-xs tabular-nums text-zinc-500">
                         {formatRelativeTime(issue.createdAt)}
                       </span>
-                      
-
-                      
                     </div>
-
-                    
                   ))
-                    
                 )}
-                
               </div>
             </div>
-          
+
             {/* Recent Activity */}
             <div className="flex h-[360px] min-w-0 flex-col overflow-hidden rounded-xl border border-white/10">
               <div className="border-b border-white/10 px-5 py-4">
                 <h2 className="text-sm font-semibold">Recent Activity</h2>
               </div>
-          
+
               <div className="min-h-0 flex-1 overflow-y-auto p-5">
                 <p className="text-sm text-zinc-500">No activity yet</p>
               </div>
@@ -307,20 +302,48 @@ export default function ProjectOverviewPage() {
 
         {/* Right Section */}
         <div className="min-w-0 space-y-4">
-          <div className="rounded-xl border border-white/10 p-5 flex justify-between">
-            <span>Team</span>
-            <p>View all</p>
-            {project.members.length === 0 ? (
-              <div>
-                <button></button>
-            </div>
-            ) : (<div>
-                
-            </div>
+          <div className="rounded-xl border border-white/10 ">
+            <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+              <h2 className="text-sm font-semibold">Team</h2>
 
+              <button
+                type="button"
+                className="text-xs font-medium text-blue-400 hover:text-blue-300"
+              >
+                View all
+              </button>
+            </div>
+            <div className="p-5">
+              {project.members.length === 0 ? (
+              <p className="text-sm text-zinc-400">No team members yet</p>
+              ) : (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {project.members.map((member) => (
+                      <div key={member.userId} className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-zinc-800">
+                        <UserAvatar name={member.user.name ?? "Member"} imageUrl={member.user.imageUrl}   />
+                        
+                      </div>
+                    ))}
+                  </div>
               )
-            } 
+              }
+              <button
+                     type="button"
+                     onClick={() => setAddMembersOpen(true)}
+                     className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-white/15 px-4 py-2.5 text-sm font-medium text-zinc-400 transition-colors hover:border-white/30 hover:bg-white/5 hover:text-white"
+                   >
+                     <UsersRound size={16} />
+                     Invite member
+                   </button>
+            </div>
           </div>
+
+          {addMembersOpen && (
+            <AddProjectMembersDialog
+              projectId={projectId}
+              onClose={() => setAddMembersOpen(false)}
+            />
+          )}
 
           {/* Team, Project Details, Tags, Links */}
         </div>
