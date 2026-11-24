@@ -1,5 +1,6 @@
-import { addProjectMembers, getAvailableProjectMembers, getProjectById } from "@/services/project.services";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { addProjectMembers, createProjectUpdate, getAvailableProjectMembers, getLatestProjectUpdate, getProjectById, getProjectUpdates } from "@/services/project.services";
+import { CreateProjectUpdateInput } from "@/types/project-update";
+import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 
 
@@ -44,4 +45,51 @@ export function useAddProjectMembers(projectId: string) {
       })
       }
   })
+}
+
+
+export function useProjectUpdates(projectId: string) {
+
+  return useQuery({
+    
+    queryKey: ["project-updates", projectId],
+    queryFn: () => getProjectUpdates(projectId),
+    enabled:Boolean(projectId)
+    
+    }
+  )
+}
+
+export function useLatestProjectUpdates(projectId: string) {
+
+
+  return useQuery({
+    queryKey: ["latest-project-update", projectId],
+    queryFn: () => getLatestProjectUpdate(projectId),
+    enabled:Boolean(projectId)
+  })
+}
+
+
+export function useCreateProjectUpdate(projectId: string) {
+
+  const queryClient = useQueryClient();
+
+
+  return useMutation(
+    {
+      mutationFn: (data: CreateProjectUpdateInput) => createProjectUpdate(projectId, data),
+
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["project-updates", projectId]
+        });
+
+        queryClient.invalidateQueries({
+          queryKey:["latest-project-update",projectId]
+        })
+        
+      }
+    }
+  )
 }

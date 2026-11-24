@@ -1,5 +1,6 @@
 import { createIssue, CreateIssueInput } from "@/services/issue.services";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Issue } from "../../components/issue/issue.types";
 
 
 

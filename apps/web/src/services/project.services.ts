@@ -1,3 +1,4 @@
+import { CreateProjectUpdateInput, ProjectUpdate } from "@/types/project-update";
 import { Project } from "../../components/projects/projects-context";
 
 export async function getProjectById(projectId: string): Promise<Project> {
@@ -20,14 +21,11 @@ export async function getProjectById(projectId: string): Promise<Project> {
 
 
 export async function getAvailableProjectMembers(projectId: string) {
-  const token = localStorage.getItem("token");
-
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/projects/${projectId}/available-members`,
+    `${process.env.NEXT_PUBLIC_API_URL}/projects/${encodeURIComponent(projectId)}/available-members`,
     {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      method: "GET",
+      credentials: "include",
     },
   );
 
@@ -44,16 +42,14 @@ export async function addProjectMembers(
   projectId: string,
   memberIds: string[],
 ) {
-  const token = localStorage.getItem("token");
-
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/projects/${projectId}/members`,
+    `${process.env.NEXT_PUBLIC_API_URL}/projects/${encodeURIComponent(projectId)}/members`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
       body: JSON.stringify({ memberIds }),
     },
   );
@@ -65,4 +61,71 @@ export async function addProjectMembers(
   const data = await response.json();
 
   return data.members;
+}
+
+
+export async function createProjectUpdate(
+  projectId: string,
+  data: CreateProjectUpdateInput,
+): Promise<ProjectUpdate> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/projects/${encodeURIComponent(projectId)}/postupdate`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(data),
+    },
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to create project update");
+  }
+
+  return result.projectUpdate;
+}
+
+export async function getProjectUpdates(
+  projectId: string,
+): Promise<ProjectUpdate[]> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/projects/${encodeURIComponent(projectId)}/updates`,
+    {
+      method: "GET",
+      credentials: "include",
+    },
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch project updates");
+  }
+
+  return result.projectUpdates;
+}
+
+
+export async function getLatestProjectUpdate(
+  projectId: string,
+): Promise<ProjectUpdate | null> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/projects/${encodeURIComponent(projectId)}/updates/latest`,
+    {
+      method: "GET",
+      credentials: "include",
+    },
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch latest project update");
+  }
+
+  return result.latestUpdate;
 }
