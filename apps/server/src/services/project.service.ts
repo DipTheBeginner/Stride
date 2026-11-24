@@ -1,5 +1,6 @@
 import { prisma } from "@stride/database";
 import { Prisma } from "../../../../packages/database/generated/prisma/client";
+type ProjectHealth = "ON_TRACK" | "AT_RISK" | "OFF_TRACK";
 
 export async function createProject(
   name: string,
@@ -70,7 +71,7 @@ export async function createProject(
     const projectKey = attempt === 1 ? baseKey : `${baseKey}${attempt}`;
 
     try {
-       project = await prisma.project.create({
+      project = await prisma.project.create({
         data: {
           name,
           key: projectKey,
@@ -221,41 +222,41 @@ export async function getProjectMembers(projectId: string, userId: string) {
   return members;
 }
 
-
-export async function getAvilableProjectMembers(projectId: string, userId: string) {
+export async function getAvilableProjectMembers(
+  projectId: string,
+  userId: string,
+) {
   const project = await prisma.project.findFirst({
     where: {
       id: projectId,
       workspace: {
         members: {
-          some:{userId}
-        }
-      }
+          some: { userId },
+        },
+      },
     },
     select: {
       workspaceId: true,
       members: {
         select: {
-          userId:true
-        }
-      }
-    }
-  })
+          userId: true,
+        },
+      },
+    },
+  });
 
   if (!project) {
-      throw new Error("Project not found or unauthorized");
-    }
-  
-    const existingMemberIds = project.members.map(
-      (member) => member.userId,
-    );
+    throw new Error("Project not found or unauthorized");
+  }
+
+  const existingMemberIds = project.members.map((member) => member.userId);
 
   const avilableMembers = await prisma.workspaceMember.findMany({
     where: {
       workspaceId: project.workspaceId,
       userId: {
-        notIn:existingMemberIds
-      }
+        notIn: existingMemberIds,
+      },
     },
 
     select: {
@@ -264,18 +265,14 @@ export async function getAvilableProjectMembers(projectId: string, userId: strin
           id: true,
           name: true,
           email: true,
-          imageUrl:true
-          
-        }
-      }
-    }
-  })
+          imageUrl: true,
+        },
+      },
+    },
+  });
 
-  return avilableMembers.map((member)=>member.user)
-
-  
+  return avilableMembers.map((member) => member.user);
 }
-
 
 export async function addProjectMembers(
   projectId: string,
@@ -372,4 +369,136 @@ export async function addProjectMembers(
       },
     },
   });
+}
+
+export async function createProjectUpdate(
+  projectId: string,
+  userId: string,
+  content: string,
+  health: ProjectHealth,
+) {
+  const project = await prisma.project.findFirst({
+    where: {
+      id: projectId,
+      members: {
+        some: {
+          userId,
+        },
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!project) {
+    throw new Error("Project not found");
+  }
+
+  if (!content.trim()) {
+    throw new Error("Update content is required");
+  }
+
+  const projectUpdate = await prisma.projectUpdate.create({
+    data: {
+      projectId,
+      authorId: userId,
+      content: content.trim(),
+      health,
+    },
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+          imageUrl: true,
+        },
+      },
+    },
+  });
+
+  return projectUpdate;
+}
+
+export async function getprojectUpdate(projectId: string, userId: string) {
+  const project = await prisma.project.findUnique({
+    where: {
+      id: projectId,
+      members: {
+        some: {
+          userId,
+        },
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!project) {
+    throw new Error("Project not found");
+  }
+
+  const projectUpdates = await prisma.projectUpdate.findMany({
+    where: {
+      projectId,
+    },
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+          imageUrl: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return projectUpdates;
+}
+
+export async function getLatestProjectUpdate(
+  projectId: string,
+  userId: string,
+) {
+  const project = await prisma.project.findUnique({
+    where: {
+      id: projectId,
+      members: {
+        some: {
+          userId,
+        },
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!project) {
+    throw new Error("Project not found or access denied");
+  }
+
+  const latestUpdate = await prisma.projectUpdate.findFirst({
+    where: {
+      projectId,
+    },
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+          imageUrl: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return latestUpdate;
 }

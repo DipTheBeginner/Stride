@@ -14,6 +14,7 @@ import {
   Clock3,
   Eye,
   CircleCheck,
+  Plus,
 } from "lucide-react";
 import { statusConfig } from "../../../../../../components/projects/project-config";
 import IssueStatCard from "../../../../../../components/issue/issue-stat-card";
@@ -21,6 +22,7 @@ import UserAvatar from "../../../../../../components/ui/user-avatra";
 import formatRelativeTime from "@/lib/format-date";
 import AddProjectMembersDialog from "../../../../../../components/projects/add-project-members-dialog";
 import { useState } from "react";
+import Image from "next/image";
 
 export default function ProjectOverviewPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -71,6 +73,8 @@ export default function ProjectOverviewPage() {
     )
     .slice(0, 5);
 
+  const projectLead = project.members.find((member) => member.role === "LEAD");
+
   return (
     <div className="p-4">
       {/* Project Header */}
@@ -110,7 +114,7 @@ export default function ProjectOverviewPage() {
             </div>
 
             {/* Tags, Dates and Members */}
-            <div className="flex flex-wrap items-center gap-15 pl-25">
+            {/*<div className="flex flex-wrap items-center gap-15 pl-25">
               {project.tags?.[0] && (
                 <div className="flex items-center gap-2">
                   <Tags size={18} className="text-zinc-500" />
@@ -157,7 +161,7 @@ export default function ProjectOverviewPage() {
                   <span>members</span>
                 </div>
               </div>
-            </div>
+            </div>*/}
           </div>
 
           {/* Right Header Actions */}
@@ -298,11 +302,15 @@ export default function ProjectOverviewPage() {
               </div>
             </div>
           </div>
+
+          <div>
+            
+          </div>
         </div>
 
         {/* Right Section */}
-        <div className="min-w-0 space-y-4">
-          <div className="rounded-xl border border-white/10 ">
+        <div className="min-w-0 space-y-4 ">
+          <div className="rounded-xl border border-white/10  bg-[]">
             <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
               <h2 className="text-sm font-semibold">Team</h2>
 
@@ -315,26 +323,30 @@ export default function ProjectOverviewPage() {
             </div>
             <div className="p-5">
               {project.members.length === 0 ? (
-              <p className="text-sm text-zinc-400">No team members yet</p>
+                <p className="text-sm text-zinc-400">No team members yet</p>
               ) : (
-                  <div className="flex flex-wrap items-center gap-2">
-                    {project.members.map((member) => (
-                      <div key={member.userId} className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-zinc-800">
-                        <UserAvatar name={member.user.name ?? "Member"} imageUrl={member.user.imageUrl}   />
-                        
-                      </div>
-                    ))}
-                  </div>
-              )
-              }
+                <div className="flex flex-wrap items-center gap-2">
+                  {project.members.map((member) => (
+                    <div
+                      key={member.userId}
+                      className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-zinc-800"
+                    >
+                      <UserAvatar
+                        name={member.user.name ?? "Member"}
+                        imageUrl={member.user.imageUrl}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
               <button
-                     type="button"
-                     onClick={() => setAddMembersOpen(true)}
-                     className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-white/15 px-4 py-2.5 text-sm font-medium text-zinc-400 transition-colors hover:border-white/30 hover:bg-white/5 hover:text-white"
-                   >
-                     <UsersRound size={16} />
-                     Invite member
-                   </button>
+                type="button"
+                onClick={() => setAddMembersOpen(true)}
+                className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-white/15 px-4 py-2.5 text-sm font-medium text-zinc-400 transition-colors hover:border-white/30 hover:bg-white/5 hover:text-white"
+              >
+                <UsersRound size={16} />
+                Invite member
+              </button>
             </div>
           </div>
 
@@ -345,7 +357,115 @@ export default function ProjectOverviewPage() {
             />
           )}
 
-          {/* Team, Project Details, Tags, Links */}
+          <div className="rounded-xl border border-white/10 bg-[#1A1A1B] p-4">
+            <h2 className="mb-5 text-sm font-semibold">Properties</h2>
+
+            <div className="grid grid-cols-[80px_minmax(0,1fr)] items-center gap-x-4 gap-y-5 text-sm">
+              {/* Status */}
+              <span className="text-zinc-500">Status</span>
+              <span className="capitalize text-zinc-300">
+                {project.status.toLowerCase().replaceAll("_", " ")}
+              </span>
+
+              {/* Priority */}
+              <span className="text-zinc-500">Priority</span>
+              <span className="capitalize text-zinc-300">
+                {project.priority.toLowerCase()}
+              </span>
+
+              {/* Lead */}
+              <span className="text-zinc-500">Lead</span>
+
+              {projectLead ? (
+                <div className="flex min-w-0 items-center gap-2">
+                  <UserAvatar
+                    imageUrl={projectLead.user.imageUrl}
+                    name={projectLead.user.name ?? "Project lead"}
+                    size={20}
+                  />
+
+                  <span className="truncate text-zinc-300">
+                    {projectLead.user.name}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-zinc-500">No lead</span>
+              )}
+
+              {/* Dates */}
+              <span className="text-zinc-500">Dates</span>
+
+              <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-300">
+                <span>
+                  {project.startDate
+                    ? new Date(project.startDate).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                        timeZone: "UTC",
+                      })
+                    : "No start date"}
+                </span>
+
+                <span className="text-zinc-600">–</span>
+
+                <span>
+                  {project.dueDate
+                    ? new Date(project.dueDate).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                        timeZone: "UTC",
+                      })
+                    : "No due date"}
+                </span>
+              </div>
+
+              {/* Teams */}
+              <span className="text-zinc-500">Teams</span>
+              <span className="text-zinc-500">—</span>
+
+              {/* Labels */}
+              <span className="text-zinc-500">Labels</span>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {project.tags?.length ? (
+                  project.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="rounded-md border border-white/10 px-2 py-1 text-xs capitalize text-zinc-400"
+                    >
+                      {tag}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-zinc-500">No labels</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-white/10 p-4 gap-4 flex flex-col">
+            <h2 className="text-sm font-semibold">Links</h2>
+
+            <div className="flex items-center gap-3">
+              <Image src="/fig.svg" alt="Figma" width={15} height={15} />
+
+              <span className="text-sm text-zinc-300">Figma</span>
+            </div>
+
+            <div className=" flex items-center gap-3">
+              <Image src="/git.svg" alt="Github" width={15} height={15} />
+              <span>Github</span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div>
+                <Plus />
+              </div>
+              <h1>Add link</h1>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,0 +1,29 @@
+<svg
+  width="100"
+  height="150"
+  viewBox="0 0 100 150"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M25 150A25 25 0 0 0 50 125V100H25A25 25 0 0 0 25 150Z"
+    fill="#0ACF83"
+  />
+
+  <path
+    d="M0 75A25 25 0 0 1 25 50H50V100H25A25 25 0 0 1 0 75Z"
+    fill="#A259FF"
+  />
+
+  <path
+    d="M0 25A25 25 0 0 1 25 0H50V50H25A25 25 0 0 1 0 25Z"
+    fill="#F24E1E"
+  />
+
+  <path
+    d="M50 0H75A25 25 0 0 1 75 50H50V0Z"
+    fill="#FF7262"
+  />
+
+  <circle cx="75" cy="75" r="25" fill="#1ABCFE" />
+</svg>

@@ -3,9 +3,12 @@ import authMiddleware from "../middleware/aut.middleware";
 import {
   addProjectMembers,
   createProject,
+  createProjectUpdate,
   getAvilableProjectMembers,
+  getLatestProjectUpdate,
   getProjectById,
   getProjectMembers,
+  getprojectUpdate,
   getWorkspaceProjectsBySlug,
 } from "../services/project.service";
 import { strict } from "assert";
@@ -380,19 +383,17 @@ router.get(
 
       return res.status(200).json({
         success: true,
-        availableMembers
+        availableMembers,
       });
     } catch (error) {
       console.error("Error fetching avilable project members", error);
       return res.status(500).json({
         success: false,
-        message:"Failed to fetch avilable project member"
-      })
+        message: "Failed to fetch avilable project member",
+      });
     }
   },
 );
-
-
 
 router.post(
   "/:projectId/members",
@@ -430,11 +431,7 @@ router.post(
         });
       }
 
-      const members = await addProjectMembers(
-        projectId,
-        userId,
-        memberIds,
-      );
+      const members = await addProjectMembers(projectId, userId, memberIds);
 
       return res.status(200).json({
         success: true,
@@ -453,8 +450,7 @@ router.post(
         }
 
         if (
-          error.message ===
-          "You don't have permission to add project members"
+          error.message === "You don't have permission to add project members"
         ) {
           return res.status(403).json({
             success: false,
@@ -476,6 +472,153 @@ router.post(
       return res.status(500).json({
         success: false,
         message: "Failed to add project members",
+      });
+    }
+  },
+);
+
+router.post(
+  "/:projectId/postupdate",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      const { projectId } = req.params;
+      if (typeof projectId !== "string" || !projectId.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid project ID",
+        });
+      }
+      const userId = req.user.id;
+
+      const { content, health } = req.body;
+
+      if (typeof content !== "string" || !content.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "Update content is required",
+        });
+      }
+
+      if (!["ON_TRACK", "AT_RISK", "OFF_TRACK"].includes(health)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid project health",
+        });
+      }
+
+      const projectUpdate = await createProjectUpdate(
+        projectId,
+        userId,
+        content,
+        health,
+      );
+      return res.status(201).json({
+        success: true,
+        message: "Project update created successfully",
+        projectUpdate,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to create project update",
+      });
+    }
+  },
+);
+
+
+router.get(
+  "/:projectId/updates",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      const { projectId } = req.params;
+      const userId = req.user.id;
+
+      if (typeof projectId !== "string" || !projectId.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid project ID",
+        });
+      }
+
+      const projectUpdates = await getprojectUpdate(
+        projectId,
+        userId,
+      );
+
+      return res.status(200).json({
+        success: true,
+        projectUpdates,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch project updates",
+      });
+    }
+  },
+);
+
+router.get(
+  "/:projectId/updates/latest",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      const { projectId } = req.params;
+      const userId = req.user.id;
+
+      if (typeof projectId !== "string" || !projectId.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid project ID",
+        });
+      }
+
+      const latestUpdate = await getLatestProjectUpdate(
+        projectId,
+        userId,
+      );
+
+      return res.status(200).json({
+        success: true,
+        latestUpdate,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch latest project update",
       });
     }
   },
