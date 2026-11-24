@@ -241,7 +241,7 @@ export default function ProjectOverviewPage() {
                   recentIssues.map((issue) => (
                     <div
                       key={issue.id}
-                      className="grid grid-cols-[minmax(0,1fr)_55px_90px_32px_55px] items-center gap-2 border-b border-white/5 px-5 py-4 transition-colors last:border-b-0 hover:bg-white/3"
+                      className="grid grid-cols-[minmax(0,1fr)_55px_90px_32px_55px] items-center gap-2  px-5 py-4 transition-colors last:border-b-0 hover:bg-white/3"
                     >
                       {/* Issue Title + Status Dot */}
                       <div className="flex min-w-0 items-center gap-3">
@@ -275,10 +275,11 @@ export default function ProjectOverviewPage() {
                         {issue.priority.toLowerCase()}
                       </span>
 
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-zinc-800">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-zinc-800">
                         <UserAvatar
                           imageUrl={issue.assignee?.imageUrl}
                           name={issue.assignee?.name ?? "Unassigned"}
+                          size={20}
                         />
                       </div>
 

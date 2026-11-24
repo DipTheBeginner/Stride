@@ -35,6 +35,11 @@ export default function ProjectCard({
   const status = statusConfig[project.status];
   const priority = priorityConfig[project.priority];
 
+  const progress =
+    totalIssues === 0
+      ? 0
+      : Math.round((completedIssues / totalIssues) * 100);
+
   return (
     <div
       onClick={onClick}

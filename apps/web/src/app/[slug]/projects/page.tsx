@@ -20,7 +20,7 @@ export default function Projects() {
       <div className="flex justify-between p-6 rounded-lg">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-semibold">Projects</h1>
-          <h1 className="text-3xl">Turn ideas into real progress</h1>
+          
           <p>Create organize and manage all your workspace projects.</p>
         </div>
 

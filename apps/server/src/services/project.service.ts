@@ -137,16 +137,47 @@ export async function getWorkspaceProjectsBySlug(slug: string, userId: string) {
               },
             },
           },
+          _count: {
+            select: {
+              issues:true
+            }
+          }
         },
       },
     },
   });
 
+  const completedIssuesCounts = await prisma.issue.groupBy({
+    by: ["projectId"],
+    where: {
+      projectId: {
+        in:workspace?.projects.map((project)=>project.id)
+      },
+      status:"DONE"
+    },
+    _count: {
+      _all:true
+    }
+  })
+
+  const completedIssuesMap = new Map(
+    completedIssuesCounts.map((item) => [
+      item.projectId,
+      item._count._all,
+    ])
+  )
+
+  
+
   if (!workspace) {
     throw new Error("Workspace not found or unauthorized");
   }
 
-  return workspace.projects;
+  return workspace.projects.map(({ _count, ...project }) => ({
+     ...project,
+     totalIssues: _count.issues,
+     completedIssues: completedIssuesMap.get(project.id) ?? 0,
+   }));
 }
 
 export async function getProjectById(projectId: string, userId: string) {
