@@ -1,6 +1,0 @@
-
-
-
-type projectContextValue = {
-  project : 
-}
