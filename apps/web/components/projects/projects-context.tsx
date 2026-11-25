@@ -25,6 +25,8 @@ export type Project = {
   startDate: string;
   dueDate: string;
   key: string;
+  totalIssues: number;
+  completedIssues: number;
 
   members: {
     userId: string;

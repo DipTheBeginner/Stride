@@ -36,20 +36,23 @@ export default function ProjectCard({
   const priority = priorityConfig[project.priority];
 
   const progress =
-    totalIssues === 0
+    project.totalIssues === 0
       ? 0
-      : Math.round((completedIssues / totalIssues) * 100);
+      : Math.round(
+          (project.completedIssues / project.totalIssues) * 100,
+        );
 
   return (
     <div
       onClick={onClick}
-      className={`flex h-full flex-col rounded-xl border bg-[#15191E] p-4 transition-colors ${
-        onClick ? "cursor-pointer" : ""
-      } ${
-        isSelected
-          ? "border-white/30"
-          : "border-white/10 hover:border-white/20"
-      }`}
+      className={`flex h-full flex-col rounded-xl
+        border bg-[#1B1B1F] p-4 transition-colors duration-200
+        ${onClick ? "cursor-pointer" : ""}
+        ${
+          isSelected
+            ? "border-[#52525B] bg-[#202024]"
+            : "border-[#2C2C31] hover:border-[#3D3D44] hover:bg-[#202024]"
+        }`}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-5">
@@ -69,20 +72,11 @@ export default function ProjectCard({
               {project.description}
             </p>
 
-            <div className="mt-2 flex flex-wrap gap-2">
-              {project.tags.slice(0, 2).map((tag, index) => (
-                <span
-                  key={`${tag}-${index}`}
-                  className={`rounded-full px-2.5 py-1 text-sm font-medium ${
-                    tagColors[index % tagColors.length].text
-                  } ${tagColors[index % tagColors.length].bg}`}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+            
           </div>
         </div>
+
+        
 
         {/* Status */}
         <div
@@ -93,9 +87,41 @@ export default function ProjectCard({
         </div>
       </div>
 
+      <div className="mt-2 flex flex-wrap gap-2">
+        {project.tags.slice(0, 2).map((tag, index) => (
+          <span
+            key={`${tag}-${index}`}
+            className={`rounded-full px-2.5 py-1 text-sm font-medium ${
+              tagColors[index % tagColors.length].text
+            } ${tagColors[index % tagColors.length].bg}`}
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+
       <div className="mt-auto pt-6">
         {/* Progress bar will be added after tasks */}
-        <div>progress bar</div>
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-zinc-400">Progress</span>
+        
+            <span className="font-medium text-zinc-200">
+              {progress}%
+            </span>
+          </div>
+        
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#303035]">
+            <div
+            className="h-full rounded-full bg-[#8B7AE8] transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        
+          <p className="text-xs text-zinc-500">
+            {project.completedIssues} of {project.totalIssues} issues completed
+          </p>
+        </div>
 
         <div className="mt-5 flex items-center justify-between gap-2 text-sm text-zinc-400">
           <div className="flex min-w-0 items-center gap-2">
