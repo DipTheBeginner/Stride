@@ -1,3 +1,10 @@
+
 export default function Home() {
-  return <main>Stride</main>;
+  return (
+    <main>
+      Stride
+
+      
+    </main>
+  );
 }
